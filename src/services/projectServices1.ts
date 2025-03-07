@@ -6,6 +6,7 @@ export interface Project {
 
 export class ProjectService {
     private storageKey = "projects";
+    
 
     // Retrieve all projects from localStorage
     private getProjects(): Project[] {

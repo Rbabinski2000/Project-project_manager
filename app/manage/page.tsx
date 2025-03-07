@@ -1,7 +1,9 @@
 'use client'
 import { useState, useEffect } from "react";
 import { Project, ProjectService } from "../../src/services/projectServices1";
-
+import { ActiveProjectService } from "@/src/services/activeProjectServices";
+import {User, UserService} from "@/src/services/userServices"
+import { Button } from "@/components/ui/button";
 
 
 
@@ -12,8 +14,16 @@ export default function ProjectManager() {
   const [editing, setEditing] = useState<boolean>(false);
   const projectService = new ProjectService();
 
+  const userService = new UserService();
+  const [user,setUser]=useState<User|null>(null)
+
+  const activeProjectService=new ActiveProjectService();
+  const [activeProject,setActiveProject]=useState<Project|null>(null);
+
   useEffect(() => {
     setProjects(projectService.getAll());
+    setUser(userService.getCurrentUser());
+    setActiveProject(activeProjectService.getActiveProject());
   }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -39,6 +49,9 @@ export default function ProjectManager() {
   const handleDelete = (id: string) => {
     projectService.delete(id);
     setProjects(projectService.getAll());
+  };
+  const handleSelect = (project: Project) => {
+    activeProjectService.setActiveProject(project)
   };
 
   return (
@@ -72,8 +85,9 @@ export default function ProjectManager() {
               <p>{project.opis}</p>
             </div>
             <div>
-              <button onClick={() => handleEdit(project)} className="text-yellow-500 mr-2">Edytuj</button>
-              <button onClick={() => handleDelete(project.id)} className="text-red-500">Usuń</button>
+              <Button onClick={() => handleEdit(project)} className="text-yellow-500 mr-2">Edytuj</Button>
+              <Button onClick={() => handleDelete(project.id)} className="text-red-500 mr-2">Usuń</Button>
+              {/* {project.id ==activeProject?.id : <Button onClick={() => handleSelect(project)} className="text-blue-500">Wybierz jako aktywny</Button>? */}
             </div>
           </li>
         ))}
