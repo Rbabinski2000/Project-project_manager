@@ -5,7 +5,7 @@ export interface Story {
     nazwa: string;
     opis: string;
     priorytet:Priority;
-    projekt:Project|null;
+    projekt:Project;
     data_utworzenia:string;
     stan:State;
     wlasciciel:string;
@@ -16,7 +16,7 @@ export enum Priority{
     wysoki
 }
 export enum State{
-    todo,
+    todo = 1,
     doing,
     done
 }
@@ -36,8 +36,13 @@ export class StoryService {
     }
 
     // Get all projects
-    public getAll(): Story[] {
-        return this.getStories();
+    public getAll(id:string): Story[] {
+        
+        let stories = this.getStories();
+        //console.log(stories[0])
+        
+        stories = stories.filter((story)=> story.projekt.id===id);
+        return stories;
     }
 
     // Get a project by id

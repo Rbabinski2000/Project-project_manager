@@ -2,56 +2,74 @@
 import { useState, useEffect } from "react";
 import { Story, StoryService, State, Priority } from "@/src/services/storyServices";
 import { Button } from "@/components/ui/button";
+import { useProject } from "../context/activePContext";
 
 export default function StoryManager() {
   const storyService = new StoryService();
+  const { activeProject } = useProject();
+
+  // Loading state
+  const [loading, setLoading] = useState(true);
+
   const [stories, setStories] = useState<Story[]>([]);
   const [filter, setFilter] = useState<State | "all">("all");
-
-  // Story form state
-  const [form, setForm] = useState<Story>({
-    id: "",
-    nazwa: "",
-    opis: "",
-    priorytet: Priority.niski,
-    projekt: null,
-    data_utworzenia: new Date().toISOString(),
-    stan: State.todo,
-    wlasciciel: "",
-  });
   const [editing, setEditing] = useState(false);
+  const [form, setForm] = useState<Story | null>(null);
 
-  // Load stories from storage on mount
+  // Load stories and initialize form when activeProject is available
   useEffect(() => {
-    setStories(storyService.getAll());
-  }, []);
+    if (activeProject) {
+      setStories(storyService.getAll(activeProject.id));
+
+      setForm({
+        id: "",
+        nazwa: "",
+        opis: "",
+        priorytet: Priority.niski,
+        projekt: activeProject,
+        data_utworzenia: new Date().toISOString(),
+        stan: State.todo,
+        wlasciciel: "",
+      });
+
+      setLoading(false); // ✅ Set loading to false after initialization
+    }
+  }, [activeProject]);
 
   const refreshStories = () => {
-    setStories(storyService.getAll());
+    if (activeProject) {
+      setStories(storyService.getAll(activeProject.id));
+    }
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+    if (form) {
+      setForm({ ...form, [e.target.name]: e.target.value });
+    }
   };
 
   const handleSubmit = () => {
+    if (!form || !activeProject) return;
+
     if (editing) {
       storyService.update(form);
     } else {
-      storyService.create({ ...form, id: Date.now().toString() });
+      storyService.create({ ...form, id: Date.now().toString(), projekt: activeProject });
     }
     refreshStories();
+    setEditing(false);
+
+    // Reset form
     setForm({
       id: "",
       nazwa: "",
       opis: "",
       priorytet: Priority.niski,
-      projekt: null,
+      projekt: activeProject,
       data_utworzenia: new Date().toISOString(),
       stan: State.todo,
       wlasciciel: "",
     });
-    setEditing(false);
   };
 
   const handleEdit = (story: Story) => {
@@ -64,22 +82,18 @@ export default function StoryManager() {
     refreshStories();
   };
 
-  // Filter stories based on state
-  const filteredStories = filter === "all" ? stories : stories.filter((s) => s.stan === filter);
+  const filteredStories = filter === "all" ? stories : stories.filter((s) => s.stan == filter);
+
+  // Prevent rendering until activeProject & form are initialized
+  if (loading || !activeProject || !form) {
+    return <p className="text-center text-gray-500">Ładowanie danych projektu...</p>;
+  }
 
   return (
     <div className="p-6 max-w-3xl mx-auto">
-      <h1 className="text-2xl font-bold mb-4">Zarządzanie Historyjkami</h1>
+      <h1 className="text-2xl font-bold mb-4">Zarządzanie Historyjkami Projektu - {activeProject.nazwa}</h1>
 
-      {/* Filter Stories */}
-      <div className="mb-4">
-        <select onChange={(e) => setFilter(e.target.value as State | "all")} value={filter} className="border p-2 w-full">
-          <option value="all">Wszystkie</option>
-          <option value={State.todo}>Czekające na wykonanie</option>
-          <option value={State.doing}>Aktualnie wykonywane</option>
-          <option value={State.done}>Zamknięte</option>
-        </select>
-      </div>
+     
 
       {/* Story Form */}
       <div className="mb-4 border p-4 rounded">
@@ -98,6 +112,16 @@ export default function StoryManager() {
         <button onClick={handleSubmit} className="bg-blue-500 text-white px-4 py-2">
           {editing ? "Aktualizuj" : "Dodaj"}
         </button>
+      </div>
+
+       {/* Filter Stories */}
+       <div className="mb-4">
+        <select onChange={(e) => setFilter(e.target.value as State | "all")} value={filter} className="border p-2 w-full">
+          <option value="all">Wszystkie</option>
+          <option value={State.todo}>Czekające na wykonanie</option>
+          <option value={State.doing}>Aktualnie wykonywane</option>
+          <option value={State.done}>Zamknięte</option>
+        </select>
       </div>
 
       {/* Story List */}

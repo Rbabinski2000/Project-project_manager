@@ -4,8 +4,8 @@ import { Project } from "@/src/services/projectServices1";
 
 // Define the Context Type
 interface ProjectContextType {
-  activeProject: Project | null;
-  setActiveProject: (project: Project | null) => void;
+  activeProject: Project ;
+  setActiveProject: (project: Project) => void;
   isLoaded: boolean;
 }
 
@@ -14,7 +14,7 @@ const ProjectContext = createContext<ProjectContextType | undefined>(undefined);
 
 //  Create a Provider Component
 export function ProjectProvider({ children }: { children: ReactNode }) {
-    const [activeProject, setActiveProject] = useState<Project | null>(null);
+    const [activeProject, setActiveProject] = useState<Project>();
     const [isLoaded, setIsLoaded] = useState(false); // Prevents SSR mismatch
   
     useEffect(() => {
