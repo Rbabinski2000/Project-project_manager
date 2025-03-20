@@ -9,7 +9,7 @@ export class UserService {
 
     // Retrieve all projects from localStorage
     public getCurrentUser(): User {
-        let userString = localStorage.getItem(this.currentUserKey);
+        const userString = localStorage.getItem(this.currentUserKey);
         if(!userString){
             //create mock user
             const mockUser:User={

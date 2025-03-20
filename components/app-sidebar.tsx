@@ -1,3 +1,4 @@
+'use client'
 import * as React from "react"
 import { GalleryVerticalEnd } from "lucide-react"
 
@@ -14,77 +15,61 @@ import {
   SidebarMenuSubItem,
   SidebarRail,
 } from "@/components/ui/sidebar"
+import { useEffect, useState } from "react"
+import { Project } from "@/src/services/projectServices1"
+import { useRouter } from "next/navigation"
+import { useProject } from "@/app/context/activePContext"
+import Link from "next/link"
+
 
 // This is sample data.
-const data = {
+const dataS = {
   navMain: [
     {
-      title: "Getting Started",
-      url: "#",
+      title: "Home",
+      url: "/",
       items: [
         {
-          title: "CRUD",
+          title: "Projects CRUD",
           url: "/manage",
         },
         {
-          title: "Project Structure",
-          url: "#",
+          title: "Stories CRUD",
+          url: "/stories",
         },
       ],
     },
-    {
-      title: "Building Your Application",
-      url: "#",
-      items: [
-        {
-          title: "Routing",
-          url: "#",
-        },
-        {
-          title: "Data Fetching",
-          url: "#",
-          isActive: true,
-        },
-        {
-          title: "Rendering",
-          url: "#",
-        },
-        {
-          title: "Caching",
-          url: "#",
-        },
-        {
-          title: "Styling",
-          url: "#",
-        },
-        {
-          title: "Optimizing",
-          url: "#",
-        },
-      ],
-    },
-    
-    
     
   ],
 }
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+
+  const {activeProject,setActiveProject}=useProject();
+  const router = useRouter(); // Import Next.js router
+  
+  const [data,setData]=useState<[]|null>(null)
+
+  useEffect(() => {
+      //setActiveProject(activeProjectServicegetActiveProject());
+    }, []);
+   
+  
   return (
     <Sidebar {...props}>
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" asChild>
-              <a href="/">
+              <Link href="/">
                 <div className="bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg">
                   <GalleryVerticalEnd className="size-4" />
                 </div>
                 <div className="flex flex-col gap-0.5 leading-none">
-                  <span className="font-medium">Home</span>
+                  <span className="font-medium">{activeProject?.nazwa}</span>
                   
                 </div>
-              </a>
+              </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
@@ -92,7 +77,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       <SidebarContent>
         <SidebarGroup>
           <SidebarMenu>
-            {data.navMain.map((item) => (
+            {dataS.navMain.map((item) => (
               <SidebarMenuItem key={item.title}>
                 <SidebarMenuButton asChild>
                   <a href={item.url} className="font-medium">

@@ -1,9 +1,10 @@
 'use client'
 import { useState, useEffect } from "react";
 import { Project, ProjectService } from "../../src/services/projectServices1";
-import { ActiveProjectService } from "@/src/services/activeProjectServices";
+
 import {User, UserService} from "@/src/services/userServices"
 import { Button } from "@/components/ui/button";
+import { useProject } from "../context/activePContext";
 
 
 
@@ -17,14 +18,15 @@ export default function ProjectManager() {
   const userService = new UserService();
   const [user,setUser]=useState<User|null>(null)
 
-  const activeProjectService=new ActiveProjectService();
-  const [activeProject,setActiveProject]=useState<Project|null>(null);
+  
+  const {activeProject,setActiveProject}=useProject();
 
   useEffect(() => {
     setProjects(projectService.getAll());
     setUser(userService.getCurrentUser());
-    setActiveProject(activeProjectService.getActiveProject());
+    setActiveProject(activeProject);
   }, []);
+  
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -51,11 +53,14 @@ export default function ProjectManager() {
     setProjects(projectService.getAll());
   };
   const handleSelect = (project: Project) => {
-    activeProjectService.setActiveProject(project)
+    setActiveProject(project);
+    setProjects([...projectService.getAll()]); // Refresh the project list
   };
 
   return (
     <div className="p-6 max-w-2xl mx-auto">
+      <h1 className="text-2xl font-bold mb-4">Użytkownik - {user?.imie}</h1>
+      <h1 className="text-2xl font-bold mb-4">Wybrany projekt - {activeProject?.nazwa}</h1>
       <h1 className="text-2xl font-bold mb-4">Zarządzanie projektami</h1>
       <div className="mb-4">
         <input
@@ -87,7 +92,11 @@ export default function ProjectManager() {
             <div>
               <Button onClick={() => handleEdit(project)} className="text-yellow-500 mr-2">Edytuj</Button>
               <Button onClick={() => handleDelete(project.id)} className="text-red-500 mr-2">Usuń</Button>
-              {/* {project.id ==activeProject?.id : <Button onClick={() => handleSelect(project)} className="text-blue-500">Wybierz jako aktywny</Button>? */}
+              {project.id != activeProject?.id ? (
+                <Button onClick={() => handleSelect(project)} className="text-blue-500">
+                  Wybierz jako aktywny
+                </Button>
+              ) : null}
             </div>
           </li>
         ))}
