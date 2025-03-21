@@ -6,6 +6,7 @@ import { Project } from "@/src/services/projectServices1";
 interface ProjectContextType {
   activeProject: Project ;
   setActiveProject: (project: Project) => void;
+ 
   isLoaded: boolean;
 }
 

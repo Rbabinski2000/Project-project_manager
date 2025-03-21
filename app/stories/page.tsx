@@ -7,7 +7,7 @@ import { useProject } from "../context/activePContext";
 export default function StoryManager() {
   const storyService = new StoryService();
   const { activeProject } = useProject();
-
+  
   // Loading state
   const [loading, setLoading] = useState(true);
 
@@ -81,6 +81,7 @@ export default function StoryManager() {
     storyService.delete(id);
     refreshStories();
   };
+  
 
   const filteredStories = filter === "all" ? stories : stories.filter((s) => s.stan == filter);
 
