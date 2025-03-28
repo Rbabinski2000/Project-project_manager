@@ -41,6 +41,12 @@ export class UserService {
     private mockUser(projects: User[]): void {
             localStorage.setItem("users", JSON.stringify(projects));
         }
-
+    public getUsers():User[]{
+        const users = localStorage.getItem("users");
+        return users ? JSON.parse(users) : [];
+    }
+    public getById(id: string): User | undefined {
+        return this.getUsers().find((user) => user.id === id);
+    }
     
 }

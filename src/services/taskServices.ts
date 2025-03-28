@@ -24,7 +24,12 @@ export interface Task {
         if (typeof window === 'undefined') return [];
         return JSON.parse(localStorage.getItem(this.STORAGE_KEY) || '[]');
     }
-      
+    
+    public getStoryTasks(storyId:String): Task[] {
+      if (typeof window === 'undefined') return [];
+      var array:Task[]= JSON.parse(localStorage.getItem(this.STORAGE_KEY) || '[]');
+      return array.filter(task => task.historia.id === storyId);
+    }
     public getTask(id: string): Task | undefined {
         return this.getTasks().find(task => task.id === id);
     }
@@ -58,10 +63,12 @@ export interface Task {
     }
       
     public markTaskAsDone(id: string): void {
+      console.log(id)
         const task = this.getTask(id);
         if (task && task.status === State.doing) {
           task.status = State.done;
           task.data_ukonczenia = new Date().toISOString();
+          
           this.updateTask(task);
         }
     };

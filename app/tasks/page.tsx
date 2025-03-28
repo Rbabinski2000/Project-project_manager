@@ -1,5 +1,5 @@
 'use client'
-import { Priority, State, Story } from '@/src/services/storyServices';
+import { Priority, State, Story} from '@/src/services/storyServices';
 import { Task, TaskService } from '@/src/services/taskServices';
 
 //import { useRouter } from 'next/router';
@@ -7,31 +7,10 @@ import React, { useEffect, useState } from 'react';
 import { useProject } from '../context/activePContext';
 import { Button } from '@/components/ui/button';
 import EditView from './edit/editView';
+import { User, UserService } from '@/src/services/userServices';
 
 
-function detailView(activeStory:Story|null,form:Task,handleChange){
-  return(
-    <div className="p-6 max-w-3xl mx-auto">
-          <h1 className="text-2xl font-bold mb-4">Zarządzanie zadaniami  - {activeStory?.nazwa}</h1>
-    
-    
-          {/* Story Form */}
-          <div className="mb-4 border p-4 rounded">
-            <input type="text" name="nazwa" value={form.nazwa} onChange={handleChange} placeholder="Nazwa" className="border p-2 w-full mb-2" />
-            <textarea name="opis" value={form.opis} onChange={handleChange} placeholder="Opis" className="border p-2 w-full mb-2" />
-            <select name="priorytet" value={form.priorytet} onChange={handleChange} className="border p-2 w-full mb-2">
-              <option value={Priority.niski}>Niski</option>
-              <option value={Priority.sredni}>Średni</option>
-              <option value={Priority.wysoki}>Wysoki</option>
-            </select>
-    
-            {/* <button onClick={handleSubmit} className="bg-blue-500 text-white px-4 py-2">
-              Dodaj
-            </button> */}
-          </div>
-        </div>
-);
-}
+
 export default function TaskManager() {
     //const router = useRouter();
     //const userData = JSON.parse(router.query.data);
@@ -39,6 +18,7 @@ export default function TaskManager() {
 
     const {activeStory}=useProject()
     const taskService=new TaskService();
+    const userService=new UserService();
     const [tasks,setTasks]=useState<Task[]>([])
     const [form, setForm] = useState<Task|null>(null);
     const [loading, setLoading] = useState(true);
@@ -51,7 +31,7 @@ export default function TaskManager() {
 
      useEffect(() => {
         if (activeStory) {
-          setTasks(taskService.getTasks());
+          setTasks(taskService.getStoryTasks(activeStory.id));
     
           setForm({
             id:"",
@@ -70,7 +50,7 @@ export default function TaskManager() {
     
       const refreshTask = () => {
         if (activeStory) {
-          setTasks(taskService.getTasks());
+          setTasks(taskService.getStoryTasks(activeStory.id));
         }
       };
 
@@ -84,7 +64,8 @@ export default function TaskManager() {
     if (!form || !activeStory) return;
     e.preventDefault();
     form.status=State.todo;
-    taskService.addTask(form);
+    
+    taskService.addTask({ ...form, id: Date.now().toString()});
     refreshTask();
   };
 
@@ -96,6 +77,30 @@ export default function TaskManager() {
     setEditForm(task);
     setEdit(true);
   }
+  const handleEditChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+    if (editForm) {
+    setEditForm({ ...editForm, [e.target.name]: e.target.value });
+    }
+  };
+  const handleEditSubmit = (e: React.FormEvent) => {
+    if (!editForm || !activeStory) return;
+    e.preventDefault();
+    if(editForm.przypisany_uzytkownik!=undefined){
+     
+      taskService.assignUserToTask(editForm.id,userService.getById(editForm.przypisany_uzytkownik))
+    }
+    taskService.updateTask(editForm);
+    console.log(editForm)
+    refreshTask();
+    setEdit(false)
+  };
+  const handleDone = (id:string)=>{
+    taskService.markTaskAsDone(id)
+    
+    //console.log(taskService.getStoryTasks(activeStory.id))
+  
+    setEdit(false);
+  }
 
 
   if (loading || !activeStory || !form) {
@@ -103,57 +108,99 @@ export default function TaskManager() {
     return <p className="text-center text-gray-500">Ładowanie danych historii...</p>;
   }
 
-  const filteredStories = filter === "all" ? tasks : tasks.filter((s) => s.status == filter);
+  const filteredTasks = filter === "all" ? tasks : tasks.filter((s) => s.status == filter);
   return (
+    
     <div className="p-6 max-w-3xl mx-auto">
-      <h1 className="text-2xl font-bold mb-4">Zarządzanie zadaniami Historii - {activeStory.nazwa}</h1>
+      {editing ?(detailView(activeStory,editForm,handleEditChange,handleEditSubmit,handleDone)):
+      <div className="p-6 max-w-3xl mx-auto">
+        <h1 className="text-2xl font-bold mb-4">Zarządzanie zadaniami Historii - {activeStory.nazwa}</h1>
 
 
-      {/* Story Form */}
-      <div className="mb-4 border p-4 rounded">
-        <input type="text" name="nazwa" value={form.nazwa} onChange={handleChange} placeholder="Nazwa" className="border p-2 w-full mb-2" />
-        <textarea name="opis" value={form.opis} onChange={handleChange} placeholder="Opis" className="border p-2 w-full mb-2" />
-        <select name="priorytet" value={form.priorytet} onChange={handleChange} className="border p-2 w-full mb-2">
-          <option value={Priority.niski}>Niski</option>
-          <option value={Priority.sredni}>Średni</option>
-          <option value={Priority.wysoki}>Wysoki</option>
-        </select>
+        {/* Story Form */}
+        <div className="mb-4 border p-4 rounded">
+          <input type="text" name="nazwa" value={form.nazwa} onChange={handleChange} placeholder="Nazwa" className="border p-2 w-full mb-2" />
+          <textarea name="opis" value={form.opis} onChange={handleChange} placeholder="Opis" className="border p-2 w-full mb-2" />
+          <select name="priorytet" value={form.priorytet} onChange={handleChange} className="border p-2 w-full mb-2">
+            <option value={Priority.niski}>Niski</option>
+            <option value={Priority.sredni}>Średni</option>
+            <option value={Priority.wysoki}>Wysoki</option>
+          </select>
 
-        <button onClick={handleSubmit} className="bg-blue-500 text-white px-4 py-2">
-          Dodaj
-        </button>
+          <button onClick={handleSubmit} className="bg-blue-500 text-white px-4 py-2">
+            Dodaj
+          </button>
+        </div>
+
+        {/* Filter Stories */}
+        <div className="mb-4">
+          <select onChange={(e) => setFilter(e.target.value as State | "all")} value={filter} className="border p-2 w-full">
+            <option value="all">Wszystkie</option>
+            <option value={State.todo}>Czekające na wykonanie</option>
+            <option value={State.doing}>Aktualnie wykonywane</option>
+            <option value={State.done}>Zamknięte</option>
+          </select>
+        </div>
+
+        {/* Story List */}
+        <ul>
+          {filteredTasks.map((task) => (
+            <li key={task.id} className="border p-2 mb-2 flex justify-between">
+              <div>
+                <h2 className="font-bold">{task.nazwa}</h2>
+                <p>{task.opis}</p>
+                <p className="text-sm text-gray-500">{task.data_dodania}</p>
+                <span className={`px-2 py-1 rounded text-white ${task.status === State.todo ? "bg-yellow-500" : task.status === State.doing ? "bg-blue-500" : "bg-green-500"}`}>
+                  {task.status.toString().toUpperCase()}
+                </span>
+              </div>
+              <div>
+                <Button onClick={() => handleEdit(task)} className="text-yellow-500 mr-2">Edytuj</Button>
+                <Button onClick={() => handleDelete(task.id)} className="text-red-500">Usuń</Button>
+
+              </div>
+            </li>
+          ))}
+        </ul>
       </div>
-
-       {/* Filter Stories */}
-       <div className="mb-4">
-        <select onChange={(e) => setFilter(e.target.value as State | "all")} value={filter} className="border p-2 w-full">
-          <option value="all">Wszystkie</option>
-          <option value={State.todo}>Czekające na wykonanie</option>
-          <option value={State.doing}>Aktualnie wykonywane</option>
-          <option value={State.done}>Zamknięte</option>
-        </select>
-      </div>
-
-      {/* Story List */}
-      <ul>
-        {filteredStories.map((task) => (
-          <li key={task.id} className="border p-2 mb-2 flex justify-between">
-            <div>
-              <h2 className="font-bold">{task.nazwa}</h2>
-              <p>{task.opis}</p>
-              <p className="text-sm text-gray-500">{task.data_dodania}</p>
-              <span className={`px-2 py-1 rounded text-white ${task.status === State.todo ? "bg-yellow-500" : task.status === State.doing ? "bg-blue-500" : "bg-green-500"}`}>
-                {task.status.toString().toUpperCase()}
-              </span>
-            </div>
-            <div>
-              <Button onClick={() => handleEdit(task)} className="text-yellow-500 mr-2">Edytuj</Button>
-              <Button onClick={() => handleDelete(task.id)} className="text-red-500">Usuń</Button>
-            </div>
-          </li>
-        ))}
-      </ul>
-      {editing ?null :(detailView(editForm,activeStory,handleChange))}
+      }
     </div>
   );
 };
+function detailView(activeStory:Story|null,form:Task,handleEditChange,handleEditSubmit,handleDone){
+  const userService=new UserService();
+  const users:User[]=userService.getUsers();
+  return(
+    <div className="p-6 max-w-3xl mx-auto">
+          <h1 className="text-2xl font-bold mb-4">Zarządzanie zadaniem  - {form.nazwa} o id-{form.id}</h1>
+    
+    
+          {/* task Form */}
+          <div className="mb-4 border p-4 rounded">
+            nazwa:<input type="text" name="nazwa" value={form.nazwa} onChange={handleEditChange} placeholder="Nazwa" className="border p-2 w-full mb-2" />
+            opis:<textarea name="opis" value={form.opis} onChange={handleEditChange} placeholder="Opis" className="border p-2 w-full mb-2" />
+            Priorytet:<select name="priorytet" value={form.priorytet} onChange={handleEditChange} className="border p-2 w-full mb-2">
+              <option value={Priority.niski}>Niski</option>
+              <option value={Priority.sredni}>Średni</option>
+              <option value={Priority.wysoki}>Wysoki</option>
+            </select>
+
+            Status:{form.status.toString()}
+            <br/>
+            Użytkownik:
+            <select name="przypisany_uzytkownik" value={form.przypisany_uzytkownik} onChange={handleEditChange} className="border p-2 w-full mb-2">
+            <option value="">Brak przypisu</option>
+              {users.map((user)=>(
+                <option value={user.id}>{user.imie} {user.nazwisko}</option>
+              ))}
+            </select>
+            <button onClick={()=>handleDone(form.id)} className="bg-red-500 text-white px-4 py-2">
+              Zakończ zadanie
+            </button> 
+             <button onClick={handleEditSubmit} className="bg-blue-500 text-white px-4 py-2">
+              Aktualizuj
+            </button> 
+          </div>
+        </div>
+);
+}
