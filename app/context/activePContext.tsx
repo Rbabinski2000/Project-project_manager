@@ -1,12 +1,14 @@
 "use client";
 import { createContext, useContext, useState, ReactNode, useEffect} from "react";
 import { Project } from "@/src/services/projectServices1";
+import { Story } from "@/src/services/storyServices";
 
 // Define the Context Type
 interface ProjectContextType {
   activeProject: Project ;
   setActiveProject: (project: Project) => void;
- 
+  activeStory:Story;
+  setActiveStory : (story: Story) => void;
   isLoaded: boolean;
 }
 
@@ -16,6 +18,7 @@ const ProjectContext = createContext<ProjectContextType | undefined>(undefined);
 //  Create a Provider Component
 export function ProjectProvider({ children }: { children: ReactNode }) {
     const [activeProject, setActiveProject] = useState<Project>();
+    const [activeStory,setActiveStory]=useState<Story>()
     const [isLoaded, setIsLoaded] = useState(false); // Prevents SSR mismatch
   
     useEffect(() => {
@@ -23,6 +26,8 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
       if (typeof window !== "undefined") {
         const savedProject = localStorage.getItem("activeProject");
         setActiveProject(savedProject ? JSON.parse(savedProject) : null);
+        const savedStory = localStorage.getItem("activeStory");
+        setActiveStory(savedStory ? JSON.parse(savedStory) : null);
         setIsLoaded(true); // Mark as loaded
       }
     }, []);
@@ -32,9 +37,14 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
         localStorage.setItem("activeProject", JSON.stringify(activeProject));
       }
     }, [activeProject]);
+    useEffect(() => {
+      if (activeStory) {
+        localStorage.setItem("activeStory", JSON.stringify(activeStory));
+      }
+    }, [activeStory]);
       
   return (
-    <ProjectContext.Provider value={{ activeProject, setActiveProject, isLoaded }}>
+    <ProjectContext.Provider value={{ activeProject, setActiveProject, activeStory,setActiveStory,isLoaded }}>
       {children}
     </ProjectContext.Provider>
   );

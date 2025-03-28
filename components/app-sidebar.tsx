@@ -15,9 +15,9 @@ import {
   SidebarMenuSubItem,
   SidebarRail,
 } from "@/components/ui/sidebar"
-import { useEffect, useState } from "react"
-import { Project } from "@/src/services/projectServices1"
-import { useRouter } from "next/navigation"
+// import { useEffect, useState } from "react"
+// import { Project } from "@/src/services/projectServices1"
+// import { useRouter } from "next/navigation"
 import { useProject } from "@/app/context/activePContext"
 import Link from "next/link"
 
@@ -37,6 +37,10 @@ const dataS = {
           title: "Stories CRUD",
           url: "/stories",
         },
+        {
+          title: "Task CRUD",
+          url: "/tasks",
+        },
       ],
     },
     
@@ -45,14 +49,14 @@ const dataS = {
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
-  const {activeProject,setActiveProject}=useProject();
-  const router = useRouter(); // Import Next.js router
+   const {activeProject,setActiveProject}=useProject();
+  // const router = useRouter(); // Import Next.js router
   
-  const [data,setData]=useState<[]|null>(null)
+  // const [data,setData]=useState<[]|null>(null)
 
-  useEffect(() => {
-      //setActiveProject(activeProjectServicegetActiveProject());
-    }, []);
+  // useEffect(() => {
+  //     //setActiveProject(activeProjectServicegetActiveProject());
+  //   }, []);
    
   
   return (

@@ -16,6 +16,8 @@ export default function StoryManager() {
   const [editing, setEditing] = useState(false);
   const [form, setForm] = useState<Story | null>(null);
 
+  const {activeStory,setActiveStory}=useProject();
+
   // Load stories and initialize form when activeProject is available
   useEffect(() => {
     if (activeProject) {
@@ -32,7 +34,7 @@ export default function StoryManager() {
         wlasciciel: "",
       });
 
-      setLoading(false); // ✅ Set loading to false after initialization
+      setLoading(false); // Set loading to false after initialization
     }
   }, [activeProject]);
 
@@ -81,6 +83,11 @@ export default function StoryManager() {
     storyService.delete(id);
     refreshStories();
   };
+  const handleSelect=(story:Story)=>{
+    setActiveStory(story);
+    setStories([...storyService.getAll(activeProject.id)]); 
+
+  }
   
 
   const filteredStories = filter === "all" ? stories : stories.filter((s) => s.stan == filter);
@@ -140,6 +147,11 @@ export default function StoryManager() {
             <div>
               <Button onClick={() => handleEdit(story)} className="text-yellow-500 mr-2">Edytuj</Button>
               <Button onClick={() => handleDelete(story.id)} className="text-red-500">Usuń</Button>
+              {story.id != activeStory?.id ? (
+                <Button onClick={() => handleSelect(story)} className="text-blue-500">
+                  Wybierz jako aktywny
+                </Button>
+              ) : null}
             </div>
           </li>
         ))}
