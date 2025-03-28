@@ -1,5 +1,6 @@
 //import { Project } from "./projectServices1";
 import { Priority,State, Story } from "./storyServices";
+import { User } from "./userServices";
 
 export interface Task {
     id: string;
@@ -41,6 +42,7 @@ export interface Task {
     }
       
     public updateTask(updatedTask: Task): void {
+      console.log(updatedTask)
         const tasks =this.getTasks().map(task => 
           task.id === updatedTask.id ? updatedTask : task
         );
@@ -52,20 +54,23 @@ export interface Task {
         localStorage.setItem(this.STORAGE_KEY, JSON.stringify(tasks));
     }
       
-    public assignUserToTask(id: string, user: string): void {
+    public assignUserToTask(id: string, user: User): void {
         const task = this.getTask(id);
+       
         if (task && task.status === State.todo) {
           task.status = State.doing;
           task.data_startu = new Date().toISOString();
-          task.przypisany_uzytkownik = user;
+          task.przypisany_uzytkownik = user.imie;
+          
           this.updateTask(task);
         }
     }
       
     public markTaskAsDone(id: string): void {
-      console.log(id)
         const task = this.getTask(id);
+        console.log(task)
         if (task && task.status === State.doing) {
+          console.log("inside mark")
           task.status = State.done;
           task.data_ukonczenia = new Date().toISOString();
           

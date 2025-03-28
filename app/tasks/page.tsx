@@ -85,12 +85,15 @@ export default function TaskManager() {
   const handleEditSubmit = (e: React.FormEvent) => {
     if (!editForm || !activeStory) return;
     e.preventDefault();
+    
+    
     if(editForm.przypisany_uzytkownik!=undefined){
      
       taskService.assignUserToTask(editForm.id,userService.getById(editForm.przypisany_uzytkownik))
+    }else{
+      taskService.updateTask(editForm);
     }
-    taskService.updateTask(editForm);
-    console.log(editForm)
+    //console.log(editForm)
     refreshTask();
     setEdit(false)
   };
@@ -98,7 +101,7 @@ export default function TaskManager() {
     taskService.markTaskAsDone(id)
     
     //console.log(taskService.getStoryTasks(activeStory.id))
-  
+    refreshTask();
     setEdit(false);
   }
 
