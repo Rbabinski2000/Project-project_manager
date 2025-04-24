@@ -48,8 +48,12 @@ export class UserService {
     public getById(id: string): User | undefined {
         return this.getUsers().find((user) => user.id === id);
     }
+    public getByIdList(id: string): User | undefined {
+        return this.userList.find((user) => user.id === id);
+    }
     public getByLogin(login:string):User|undefined{
         // return this.getUsers().find((user) => user.imie === login);
+        
         return this.userList.find((user) => user.imie === login);
     }
     

@@ -1,9 +1,18 @@
+"use client"
 import Image from "next/image";
 import { Button } from "@/components/ui/button"
 import Link from 'next/link'
 
 
-
+async function test(){
+  const res = await fetch("/api/auth/me", {
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("token")}`
+    }
+  });
+  const user = await res.json();
+  console.log("Zalogowany użytkownik:", user);
+}
 export default function Home() {
   
 
@@ -55,7 +64,7 @@ export default function Home() {
           </a>
         </div>
         <div>
-          <Button>Click me</Button>
+          <Button onClick={()=>test()}>Click me</Button>
 
           <Link href={"/manage"}> Simple CRUD</Link>
         </div>

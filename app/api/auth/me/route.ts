@@ -12,9 +12,11 @@ export async function GET(req: Request) {
 
   try {
     const token = authHeader.split(" ")[1];
+    
     const decoded = jwt.verify(token, JWT_SECRET) as any;
-    const user = userService.getById(decoded.id);
-
+    
+    const user = userService.getByIdList(decoded.id);
+    console.log(user)
     if (!user) throw new Error();
 
     const { nazwisko, ...userData } = user;
