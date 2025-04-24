@@ -20,6 +20,7 @@ import {
 // import { useRouter } from "next/navigation"
 import { useProject } from "@/app/context/activePContext"
 import Link from "next/link"
+import { ThemeToggle } from "./themeToogle"
 
 
 // This is sample data.
@@ -114,7 +115,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             ))}
           </SidebarMenu>
         </SidebarGroup>
+        <ThemeToggle/>
       </SidebarContent>
+      
       <SidebarRail />
     </Sidebar>
   )

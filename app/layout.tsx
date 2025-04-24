@@ -4,7 +4,8 @@ import "./globals.css";
 import { AppSidebar } from "@/components/app-sidebar";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { ProjectProvider } from "@/app/context/activePContext";
-import {StoryProvider} from "@/app/context/activeSContext";
+import { StoryProvider } from "@/app/context/activeSContext";
+import { ThemeProvider } from "next-themes";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -27,18 +28,20 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <ProjectProvider>
-          <StoryProvider>
-            <SidebarProvider>
-              <AppSidebar/>
-              {children}
-            </SidebarProvider>
-          </StoryProvider>
-        </ProjectProvider>
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+          <ProjectProvider>
+            <StoryProvider>
+              <SidebarProvider>
+                <AppSidebar/>
+                {children}
+              </SidebarProvider>
+            </StoryProvider>
+          </ProjectProvider>
+        </ThemeProvider>
       </body>
     </html>
   );
