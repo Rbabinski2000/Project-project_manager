@@ -51,4 +51,10 @@ export class ProjectService {
         projects = projects.filter((project) => project.id !== id);
         this.saveProjects(projects);
     }
+    public setActiveProject(activeProject:Project|null){
+        localStorage.setItem("activeProject", JSON.stringify(activeProject));
+    }
+    public getActiveProject(){
+        return localStorage.getItem("activeProject");  
+    }
 }

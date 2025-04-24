@@ -3,6 +3,8 @@ import { useState, useEffect } from "react";
 import { Story, StoryService, State, Priority } from "@/src/services/storyServices";
 import { Button } from "@/components/ui/button";
 import { useProject } from "../context/activePContext";
+import { useRouter } from "next/navigation";
+import { useStory } from "../context/activeSContext";
 
 export default function StoryManager() {
   const storyService = new StoryService();
@@ -14,29 +16,43 @@ export default function StoryManager() {
   const [stories, setStories] = useState<Story[]>([]);
   const [filter, setFilter] = useState<State | "all">("all");
   const [editing, setEditing] = useState(false);
-  const [form, setForm] = useState<Story | null>(null);
+  
+  
+  const {activeStory,setActiveStory}=useStory();
 
-  const {activeStory,setActiveStory}=useProject();
+  
 
+ 
+  const router=useRouter();
   // Load stories and initialize form when activeProject is available
   useEffect(() => {
+    const timeout = setTimeout(() => {
+      if (!activeProject) {
+        router.push("/manage");
+      }
+    }, 300); // wait 300ms before redirecting
+  
+    return () => clearTimeout(timeout);
+     
+  }, [activeProject]);
+  useEffect(() => {
     if (activeProject) {
-      setStories(storyService.getAll(activeProject.id));
-
-      setForm({
-        id: "",
-        nazwa: "",
-        opis: "",
-        priorytet: Priority.niski,
-        projekt: activeProject,
-        data_utworzenia: new Date().toISOString(),
-        stan: State.todo,
-        wlasciciel: "",
-      });
-
-      setLoading(false); // Set loading to false after initialization
+      const allStories = storyService.getAll(activeProject.id);
+      setStories(allStories);
+      setLoading(false);
     }
   }, [activeProject]);
+
+  const [form, setForm] = useState<Story>({
+    id: "",
+    nazwa: "",
+    opis: "",
+    priorytet: Priority.niski,
+    projekt: activeProject,
+    data_utworzenia: new Date().toISOString(),
+    stan: State.todo,
+    wlasciciel: "",
+  });
 
   const refreshStories = () => {
     if (activeProject) {
@@ -93,7 +109,8 @@ export default function StoryManager() {
   const filteredStories = filter === "all" ? stories : stories.filter((s) => s.stan == filter);
 
   // Prevent rendering until activeProject & form are initialized
-  if (loading || !activeProject || !form) {
+  if (loading || !activeProject) {
+    //router.push("/manage")
     return <p className="text-center text-gray-500">Ładowanie danych projektu...</p>;
   }
 
@@ -140,7 +157,7 @@ export default function StoryManager() {
               <h2 className="font-bold">{story.nazwa}</h2>
               <p>{story.opis}</p>
               <p className="text-sm text-gray-500">{story.data_utworzenia}</p>
-              <span className={`px-2 py-1 rounded text-white ${story.stan === State.todo ? "bg-yellow-500" : story.stan === State.doing ? "bg-blue-500" : "bg-green-500"}`}>
+              <span className={`px-2 py-1 rounded text-white ${story.stan == State.todo ? "bg-yellow-500" : story.stan == State.doing ? "bg-blue-500" : "bg-green-500"}`}>
                 {story.stan.toString().toUpperCase()}
               </span>
             </div>

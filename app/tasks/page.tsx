@@ -4,19 +4,19 @@ import { Task, TaskService } from '@/src/services/taskServices';
 
 //import { useRouter } from 'next/router';
 import React, { useEffect, useState } from 'react';
-import { useProject } from '../context/activePContext';
 import { Button } from '@/components/ui/button';
-import EditView from './edit/editView';
-import { User, UserService } from '@/src/services/userServices';
 
+import { User, UserService } from '@/src/services/userServices';
+import { useStory } from '../context/activeSContext';
+import { useRouter } from "next/navigation";
 
 
 export default function TaskManager() {
-    //const router = useRouter();
+    const router = useRouter();
     //const userData = JSON.parse(router.query.data);
     //console.log(router.query)
 
-    const {activeStory}=useProject()
+    const {activeStory}=useStory()
     const taskService=new TaskService();
     const userService=new UserService();
     const [tasks,setTasks]=useState<Task[]>([])
@@ -29,6 +29,16 @@ export default function TaskManager() {
 
     const [filter, setFilter] = useState<State | "all">("all");
 
+    useEffect(() => {
+      const timeout = setTimeout(() => {
+        if (!activeStory) {
+          router.push("/stories");
+        }
+      }, 300); // wait 300ms before redirecting
+    
+      return () => clearTimeout(timeout);
+       
+    }, [activeStory]);
      useEffect(() => {
         if (activeStory) {
           setTasks(taskService.getStoryTasks(activeStory.id));
@@ -88,7 +98,7 @@ export default function TaskManager() {
     
     
     if(editForm.przypisany_uzytkownik!=undefined){
-     
+      
       taskService.assignUserToTask(editForm.id,userService.getById(editForm.przypisany_uzytkownik))
     }else{
       taskService.updateTask(editForm);
@@ -115,7 +125,9 @@ export default function TaskManager() {
   return (
     
     <div className="p-6 max-w-3xl mx-auto">
-      {editing ?(detailView(activeStory,editForm,handleEditChange,handleEditSubmit,handleDone)):
+
+      {editing ?(detailView(editForm,handleEditChange,handleEditSubmit,handleDone)):
+
       <div className="p-6 max-w-3xl mx-auto">
         <h1 className="text-2xl font-bold mb-4">Zarządzanie zadaniami Historii - {activeStory.nazwa}</h1>
 
@@ -170,7 +182,7 @@ export default function TaskManager() {
     </div>
   );
 };
-function detailView(activeStory:Story|null,form:Task,handleEditChange,handleEditSubmit,handleDone){
+function detailView(form:Task,handleEditChange,handleEditSubmit,handleDone){
   const userService=new UserService();
   const users:User[]=userService.getUsers();
   return(
@@ -188,11 +200,11 @@ function detailView(activeStory:Story|null,form:Task,handleEditChange,handleEdit
               <option value={Priority.wysoki}>Wysoki</option>
             </select>
 
-            Status:{form.status.toString()}
+            Status:{form.status.valueOf()}
             <br/>
             Użytkownik:
             <select name="przypisany_uzytkownik" value={form.przypisany_uzytkownik} onChange={handleEditChange} className="border p-2 w-full mb-2">
-            <option value="">Brak przypisu</option>
+            <option value="0">Brak przypisu</option>
               {users.map((user)=>(
                 <option value={user.id}>{user.imie} {user.nazwisko}</option>
               ))}

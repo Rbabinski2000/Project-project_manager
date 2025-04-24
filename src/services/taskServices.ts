@@ -22,12 +22,10 @@ export interface Task {
     private STORAGE_KEY = 'tasks'
 
     public getTasks(): Task[] {
-        if (typeof window === 'undefined') return [];
-        return JSON.parse(localStorage.getItem(this.STORAGE_KEY) || '[]');
+      return JSON.parse(localStorage.getItem(this.STORAGE_KEY) || '[]');
     }
     
     public getStoryTasks(storyId:String): Task[] {
-      if (typeof window === 'undefined') return [];
       var array:Task[]= JSON.parse(localStorage.getItem(this.STORAGE_KEY) || '[]');
       return array.filter(task => task.historia.id === storyId);
     }
@@ -53,7 +51,17 @@ export interface Task {
         const tasks = this.getTasks().filter(task => task.id !== id);
         localStorage.setItem(this.STORAGE_KEY, JSON.stringify(tasks));
     }
-      
+    
+    public removeUserFromTask(id: string):void{
+      const task = this.getTask(id);
+       
+        if (task && task.status === State.todo) {
+          task.status = State.doing;
+          task.przypisany_uzytkownik = undefined;
+          
+          this.updateTask(task);
+        }
+    }
     public assignUserToTask(id: string, user: User): void {
         const task = this.getTask(id);
        
@@ -68,9 +76,7 @@ export interface Task {
       
     public markTaskAsDone(id: string): void {
         const task = this.getTask(id);
-        console.log(task)
         if (task && task.status === State.doing) {
-          console.log("inside mark")
           task.status = State.done;
           task.data_ukonczenia = new Date().toISOString();
           

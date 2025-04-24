@@ -26,7 +26,7 @@ import Link from "next/link"
 const dataS = {
   navMain: [
     {
-      title: "Home",
+      title: "Manage Projects",
       url: "/",
       items: [
         {
@@ -43,6 +43,16 @@ const dataS = {
         },
       ],
     },
+    {
+      title: "User",
+      url: "/",
+      items: [
+        {
+          title: "Login",
+          url: "/login",
+        }
+      ],
+    },
     
   ],
 }
@@ -57,6 +67,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   // useEffect(() => {
   //     //setActiveProject(activeProjectServicegetActiveProject());
   //   }, []);
+   
    
   
   return (

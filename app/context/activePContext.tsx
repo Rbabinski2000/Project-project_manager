@@ -1,14 +1,11 @@
 "use client";
 import { createContext, useContext, useState, ReactNode, useEffect} from "react";
-import { Project } from "@/src/services/projectServices1";
-import { Story } from "@/src/services/storyServices";
+import { Project, ProjectService } from "@/src/services/projectServices1";
 
 // Define the Context Type
 interface ProjectContextType {
-  activeProject: Project ;
-  setActiveProject: (project: Project) => void;
-  activeStory:Story;
-  setActiveStory : (story: Story) => void;
+  activeProject: Project | null;
+  setActiveProject: (project: Project|null) => void;
   isLoaded: boolean;
 }
 
@@ -17,34 +14,24 @@ const ProjectContext = createContext<ProjectContextType | undefined>(undefined);
 
 //  Create a Provider Component
 export function ProjectProvider({ children }: { children: ReactNode }) {
-    const [activeProject, setActiveProject] = useState<Project>();
-    const [activeStory,setActiveStory]=useState<Story>()
+    const [activeProject, setActiveProject] = useState<Project | null>(null);
     const [isLoaded, setIsLoaded] = useState(false); // Prevents SSR mismatch
-  
+
+    const projectService=new ProjectService()
     useEffect(() => {
-      // Load from localStorage only on client
-      if (typeof window !== "undefined") {
-        const savedProject = localStorage.getItem("activeProject");
+        const savedProject = projectService.getActiveProject();
         setActiveProject(savedProject ? JSON.parse(savedProject) : null);
-        const savedStory = localStorage.getItem("activeStory");
-        setActiveStory(savedStory ? JSON.parse(savedStory) : null);
+        
         setIsLoaded(true); // Mark as loaded
-      }
     }, []);
   
     useEffect(() => {
-      if (activeProject) {
-        localStorage.setItem("activeProject", JSON.stringify(activeProject));
-      }
+        projectService.setActiveProject(activeProject)
     }, [activeProject]);
-    useEffect(() => {
-      if (activeStory) {
-        localStorage.setItem("activeStory", JSON.stringify(activeStory));
-      }
-    }, [activeStory]);
+    
       
   return (
-    <ProjectContext.Provider value={{ activeProject, setActiveProject, activeStory,setActiveStory,isLoaded }}>
+    <ProjectContext.Provider value={{ activeProject, setActiveProject, isLoaded }}>
       {children}
     </ProjectContext.Provider>
   );
