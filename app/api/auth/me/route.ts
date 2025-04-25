@@ -19,7 +19,7 @@ export async function GET(req: Request) {
     console.log(user)
     if (!user) throw new Error();
 
-    const { nazwisko, ...userData } = user;
+    const { haslo, ...userData } = user;
     return NextResponse.json(userData);
   } catch {
     return NextResponse.json({ message: "Invalid token" }, { status: 403 });

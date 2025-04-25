@@ -4,6 +4,8 @@ export interface User {
     id: string;
     imie: string;
     nazwisko: string;
+    login:string;
+    haslo:string;
     rola:Role
 }
 export enum Role{
@@ -15,9 +17,9 @@ export enum Role{
 export class UserService {
     private currentUserKey = "currentUser";
     private userList:User[]=[
-        {id:"2",imie:"Jack",nazwisko:"newton",rola:Role.admin},
-        {id:"3",imie:"Kevin",nazwisko:"America",rola:Role.developer},
-        {id:"4",imie:"Oman",nazwisko:"Sterlng",rola:Role.devops}
+        {id:"2",imie:"Jack",nazwisko:"newton",login:"Jane",haslo:"jane",rola:Role.admin},
+        {id:"3",imie:"Kevin",nazwisko:"America",login:"Keam",haslo:"keam",rola:Role.developer},
+        {id:"4",imie:"Oman",nazwisko:"Sterlng",login:"Omst",haslo:"omst",rola:Role.devops}
     ]
     // Retrieve all projects from localStorage
     public getCurrentUser(): User {
@@ -30,6 +32,8 @@ export class UserService {
                 id:"1",
                 imie:"Janusz",
                 nazwisko:"Kowalski",
+                login:"Jako",
+                haslo:"jako",
                 rola:Role.admin
             };
             localStorage.setItem(this.currentUserKey, JSON.stringify(mockUser))
@@ -54,7 +58,7 @@ export class UserService {
     public getByLogin(login:string):User|undefined{
         // return this.getUsers().find((user) => user.imie === login);
         
-        return this.userList.find((user) => user.imie === login);
+        return this.userList.find((user) => user.login === login);
     }
     
 }

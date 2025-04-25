@@ -11,7 +11,7 @@ export async function POST(req: Request) {
   const { login, haslo } = await req.json();
   const userService=new UserService();
   const user = userService.getByLogin(login);
-  if (!user || haslo!=user.nazwisko) {
+  if (!user || haslo!=user.haslo) {
     return NextResponse.json({ message: "Invalid credentials" }, { status: 401 });
   }
 

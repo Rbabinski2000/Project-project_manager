@@ -72,4 +72,10 @@ export class StoryService {
         stories = stories.filter((story) => story.id !== id);
         this.saveStories(stories);
     }
+    public setActiveProject(activeStory:Story|null){
+        localStorage.setItem("activeStory", JSON.stringify(activeStory));
+    }
+    public getActiveProject(){
+        return localStorage.getItem("activeStory"); 
+    }
 }

@@ -1,6 +1,6 @@
 "use client";
 import { createContext, useContext, useState, ReactNode, useEffect} from "react";
-import { Story } from "@/src/services/storyServices";
+import { Story, StoryService } from "@/src/services/storyServices";
 
 // Define the Context Type
 interface StoryContextType {
@@ -14,17 +14,18 @@ const StoryContext = createContext<StoryContextType | undefined>(undefined);
 
 //  Create a Provider Component
 export function StoryProvider({ children }: { children: ReactNode }) {
+  const storyManager=new StoryService()
     const [activeStory,setActiveStory]=useState<Story|null>(null)
     const [isLoaded, setIsLoaded] = useState(false); // Prevents SSR mismatch
   
     useEffect(() => {
-        const savedStory = localStorage.getItem("activeStory");
+        const savedStory = storyManager.getActiveProject();
         setActiveStory(savedStory ? JSON.parse(savedStory) : null);
         setIsLoaded(true); // Mark as loaded
     }, []);
   
     useEffect(() => {
-        localStorage.setItem("activeStory", JSON.stringify(activeStory));
+      storyManager.setActiveProject(activeStory);
     }, [activeStory]);
       
   return (
