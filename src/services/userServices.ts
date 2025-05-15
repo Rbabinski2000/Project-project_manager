@@ -1,18 +1,8 @@
-import { User } from "lucide-react";
+import UserModel from "@/app/Model/User";
+import User from "@/app/Model/User";
+import connectDB from "@/lib/mongoDb"
 
-export interface User {
-    id: string;
-    imie: string;
-    nazwisko: string;
-    login:string;
-    haslo:string;
-    rola:Role
-}
-export enum Role{
-    admin=1,
-    devops,
-    developer
-}
+
 
 export class UserService {
     private currentUserKey = "currentUser";
@@ -42,9 +32,27 @@ export class UserService {
         return JSON.parse(userString)
 
     }
-    private mockUser(projects: User[]): void {
-            localStorage.setItem("users", JSON.stringify(projects));
+    private async mockUser(projects: User[]): Promise<void> {
+        localStorage.setItem("users", JSON.stringify(projects));
+         try {
+            const res = await fetch('/api/mongo/users', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(projects[0]),
+            });
+
+            if (!res.ok) {
+            const errorData = await res.json();
+            console.error("Failed to create user:", errorData.error);
+            return;
+            }
+
+            const data = await res.json();
+            console.log("User created:", data.user);
+        } catch (err) {
+            console.error("Network error:", err);
         }
+    }
     public getUsers():User[]{
         const users = localStorage.getItem("users");
         return users ? JSON.parse(users) : [];
@@ -61,4 +69,17 @@ export class UserService {
         return this.userList.find((user) => user.login === login);
     }
     
+}
+export interface User {
+    id: string;
+    imie: string;
+    nazwisko: string;
+    login:string;
+    haslo:string;
+    rola:Role
+}
+export enum Role{
+    admin=1,
+    devops,
+    developer
 }
