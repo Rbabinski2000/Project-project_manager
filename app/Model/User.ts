@@ -9,11 +9,10 @@ const UserSchema = new mongoose.Schema({
   haslo: String,
   rola: String
 });
-//console.log(models)
 let UserModel = models.UserModel
 
 if(UserModel == undefined){
   UserModel=model('UserModel',UserSchema)
 }
-//console.log("User clg-"+User)
+
 export default UserModel;

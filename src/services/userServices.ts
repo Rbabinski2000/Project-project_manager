@@ -1,6 +1,6 @@
 import UserModel from "@/app/Model/User";
 import User from "@/app/Model/User";
-
+import jwt from "jsonwebtoken";
 
 
 export class UserService {
@@ -12,32 +12,31 @@ export class UserService {
         {id:"4",imie:"Oman",nazwisko:"Sterlng",login:"Omst",haslo:"omst",rola:Role.devops}
     ]
     // Retrieve all projects from localStorage
-    public getCurrentUser(): User {
-        const userString = localStorage.getItem(this.currentUserKey);
-        if(!userString){
-            //create mock user
-            const mockUser:User={
-                id:"1",
-                imie:"Janusz",
-                nazwisko:"Kowalski",
-                login:"Jako",
-                haslo:"jako",
-                rola:Role.admin
-            };
-            localStorage.setItem(this.currentUserKey, JSON.stringify(mockUser))
-            return mockUser;
+    public async getCurrentUser(): Promise<User> {
+        const token = localStorage.getItem('token');
+        if(!token){
+            console.log("there is no user logged in")
+            
+        }else{
+        const payload:any=jwt.decode(token)
+        const id=payload.id
+        
+        const res = await fetch(`/api/mongo/users?id=${id}`);
+        const user = await res.json();
+        //console.log(user)
+        return user;
         }
-        return JSON.parse(userString)
 
     }
     public async mockUser():Promise<void> {
-        const projects=this.userList;
-        projects.forEach(async project => {
+        const userlist=this.userList;
+        //console.log(Role[userlist[3].rola])
+        userlist.forEach(async user => {
             try {
                 const res = await fetch('/api/mongo/users', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(project),
+                body: JSON.stringify(user),
                 });
 
                 if (!res.ok) {
@@ -67,6 +66,15 @@ export class UserService {
         // return this.getUsers().find((user) => user.imie === login);
         
         return this.userList.find((user) => user.login === login);
+    }
+    public async logOut(){
+        console.log("wylogowuje się")
+        const res = await fetch('/api/auth/login', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+    });
+
+    
     }
     
 }
