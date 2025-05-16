@@ -5,6 +5,7 @@ import { GalleryVerticalEnd } from "lucide-react"
 import {
   Sidebar,
   SidebarContent,
+  SidebarFooter,
   SidebarGroup,
   SidebarHeader,
   SidebarMenu,
@@ -21,7 +22,8 @@ import {
 import { useProject } from "@/app/context/activePContext"
 import Link from "next/link"
 import { ThemeToggle } from "./themeToogle"
-
+import { NavUser } from "./nav-user"
+import { UserService } from "@/src/services/userServices"
 
 // This is sample data.
 const dataS = {
@@ -61,6 +63,7 @@ const dataS = {
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
    const {activeProject,setActiveProject}=useProject();
+   const userService=new UserService();
   // const router = useRouter(); // Import Next.js router
   
   // const [data,setData]=useState<[]|null>(null)
@@ -115,6 +118,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             ))}
           </SidebarMenu>
         </SidebarGroup>
+        <SidebarFooter>
+        <NavUser />
+      </SidebarFooter>
         <ThemeToggle/>
       </SidebarContent>
       

@@ -1,3 +1,4 @@
+import { CloudCog } from "lucide-react";
 import mongoose from "mongoose";
 
 const MONGO_URI = "mongodb://localhost:27017/Test";
@@ -31,5 +32,6 @@ const connectDB = async () => {
     throw error;
   }
 };
-
-export default connectDB;
+console.log("abccccc")
+const connection=connectDB()
+export default connection;

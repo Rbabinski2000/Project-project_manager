@@ -1,15 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
-import connectDB from "@/lib/mongoDb";
+import connection from "@/lib/mongoDb";
 import User from "@/app/Model/User";
 
 export async function GET() {
-  await connectDB();
+  await connection;
   const users = await User.find();
   return NextResponse.json(users);
 }
 export async function POST(req: NextRequest) {
   try {
-    await connectDB();
+    await connection;
 
     const { id, imie, nazwisko, login, haslo, rola } = await req.json();
 
