@@ -1,13 +1,14 @@
 'use client'
-import { Priority, State, Story} from '@/src/services/storyServices';
-import { Task, TaskService } from '@/src/services/taskServices';
+import { Priority, State, Story} from '@/app/Model/Types/StoriesTypes';
+import {TaskService } from '@/src/services/taskServices';
+import {Task} from "@/app/Model/Tasks"
 
 //import { useRouter } from 'next/router';
 import React, { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 
 import { User, UserService } from '@/src/services/userServices';
-import { useStory } from '../context/activeSContext';
+import { useStory } from '@/app/context/activeSContext';
 import { useRouter } from "next/navigation";
 
 
@@ -40,27 +41,32 @@ export default function TaskManager() {
        
     }, [activeStory]);
      useEffect(() => {
+  if (activeStory) {
+    const init = async () => {
+      const tasks = await taskService.getStoryTasks(activeStory.id);
+      setTasks(tasks);
+
+      setForm({
+        id: "",
+        nazwa: "",
+        opis: "",
+        priorytet: Priority.niski,
+        historia: activeStory!,
+        szacowany_czas: 0,
+        status: State.todo,
+        data_dodania: new Date().toISOString(),
+      });
+
+      setLoading(false); // Set loading to false after initialization
+    };
+
+    init();
+  }
+}, [activeStory]);
+    
+      const refreshTask = async () => {
         if (activeStory) {
-          setTasks(taskService.getStoryTasks(activeStory.id));
-    
-          setForm({
-            id:"",
-            nazwa: "",
-            opis: "",
-            priorytet:Priority.niski,
-            historia:activeStory ,
-            szacowany_czas: 0,
-            status: State.todo,
-            data_dodania: new Date().toISOString(),
-            });
-    
-          setLoading(false); // Set loading to false after initialization
-        }
-      }, [activeStory]);
-    
-      const refreshTask = () => {
-        if (activeStory) {
-          setTasks(taskService.getStoryTasks(activeStory.id));
+          setTasks(await taskService.getStoryTasks(activeStory.id));
         }
       };
 
@@ -92,14 +98,15 @@ export default function TaskManager() {
     setEditForm({ ...editForm, [e.target.name]: e.target.value });
     }
   };
-  const handleEditSubmit = (e: React.FormEvent) => {
+  const handleEditSubmit = async (e: React.FormEvent) => {
     if (!editForm || !activeStory) return;
     e.preventDefault();
     
     
     if(editForm.przypisany_uzytkownik!=undefined){
+      const getUserId=await userService.getById(editForm.przypisany_uzytkownik.id)
       
-      taskService.assignUserToTask(editForm.id,userService.getById(editForm.przypisany_uzytkownik))
+      taskService.assignUserToTask(editForm.id,getUserId!.id!)
     }else{
       taskService.updateTask(editForm);
     }
@@ -182,9 +189,9 @@ export default function TaskManager() {
     </div>
   );
 };
-function detailView(form:Task,handleEditChange,handleEditSubmit,handleDone){
+async function detailView(form:Task,handleEditChange,handleEditSubmit,handleDone){
   const userService=new UserService();
-  const users:User[]=userService.getUsers();
+  const users:User[]=await userService.getUsers();
   return(
     <div className="p-6 max-w-3xl mx-auto">
           <h1 className="text-2xl font-bold mb-4">Zarządzanie zadaniem  - {form.nazwa} o id-{form.id}</h1>

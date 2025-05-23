@@ -1,6 +1,7 @@
 "use client";
 import { createContext, useContext, useState, ReactNode, useEffect} from "react";
-import { Project, ProjectService } from "@/src/services/projectServices1";
+import {ProjectService } from "@/src/services/projectServices1";
+import { Project } from "../Model/Projects";
 
 // Define the Context Type
 interface ProjectContextType {

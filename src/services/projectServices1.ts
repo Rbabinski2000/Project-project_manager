@@ -1,60 +1,64 @@
-export interface Project {
-    id: string;
-    nazwa: string;
-    opis: string;
-}
+import { Project } from '@/app/Model/Projects';
 
 export class ProjectService {
-    private storageKey = "projects";
-    
+  /** Get all projects */
 
-    // Retrieve all projects from localStorage
-    private getProjects(): Project[] {
-        const projects = localStorage.getItem(this.storageKey);
-        return projects ? JSON.parse(projects) : [];
-    }
+  private baseUrl = '/api/mongo/projects'
 
-    // Save projects back to localStorage
-    private saveProjects(projects: Project[]): void {
-        localStorage.setItem(this.storageKey, JSON.stringify(projects));
-    }
+  public async getAll(): Promise<Project[]> {
+    const res = await fetch(`${this.baseUrl}`);
+    const projects = await res.json();
+    return projects;
+  }
 
-    // Get all projects
-    public getAll(): Project[] {
-        return this.getProjects();
-    }
+  /** Get one by custom `id` */
+  public async getById(id: string): Promise<Project | null> {
+    const res = await fetch(`${this.baseUrl}/${id}`)
+    if (res.status === 404) return null
+    if (!res.ok) throw new Error('Failed to fetch project')
+    return res.json()
+  }
 
-    // Get a project by id
-    public getById(id: string): Project | undefined {
-        return this.getProjects().find((project) => project.id === id);
-    }
+  /** Create a new project */
+  public async create(newProject: Project): Promise<Project> {
+    //console.log(newProject)
+    const created = await fetch(`${this.baseUrl}`, {
+    method: 'POST',
+    body: JSON.stringify(newProject),
+    headers: { 'Content-Type': 'application/json' }
+    });
+    //console.log(created.json())
+    return created.json();
+  }
 
-    // Create a new project
-    public create(project: Project): void {
-        const projects = this.getProjects();
-        projects.push(project);
-        this.saveProjects(projects);
+  /** Update existing project */
+  public async update(project: Project): Promise<Project | null> {
+    const res = await fetch(`${this.baseUrl}/${project.id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(project),
+    });
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.error || 'Update failed');
     }
+    const data: Project = await res.json();
+    return data;
+  }
 
-    // Update an existing project
-    public update(updatedProject: Project): void {
-        let projects = this.getProjects();
-        projects = projects.map((project) =>
-            project.id === updatedProject.id ? updatedProject : project
-        );
-        this.saveProjects(projects);
-    }
-
-    // Delete a project by id
-    public delete(id: string): void {
-        let projects = this.getProjects();
-        projects = projects.filter((project) => project.id !== id);
-        this.saveProjects(projects);
-    }
-    public setActiveProject(activeProject:Project|null){
+  /** Delete by custom `id` */
+  public async delete(id: string): Promise<boolean> {
+    const res = await fetch(`${this.baseUrl}/${id}`, {
+      method: 'DELETE'
+    })
+    if (!res.ok) throw new Error('Failed to delete project')
+    const result = await res.json()
+    return result.deletedCount > 0
+  }
+  public setActiveProject(activeProject:Project|null){
         localStorage.setItem("activeProject", JSON.stringify(activeProject));
-    }
-    public getActiveProject(){
-        return localStorage.getItem("activeProject");  
-    }
+  }
+  public getActiveProject(){
+      return localStorage.getItem("activeProject");  
+  }
 }

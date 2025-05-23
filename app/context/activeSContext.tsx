@@ -1,6 +1,7 @@
 "use client";
 import { createContext, useContext, useState, ReactNode, useEffect} from "react";
-import { Story, StoryService } from "@/src/services/storyServices";
+import {StoryService } from "@/src/services/storyServices";
+import { Story } from "../Model/Stories";
 
 // Define the Context Type
 interface StoryContextType {

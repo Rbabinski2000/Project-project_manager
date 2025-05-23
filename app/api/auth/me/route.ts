@@ -11,11 +11,11 @@ export async function GET(req: Request) {
   if (!authHeader) return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
 
   try {
-    const token = authHeader.split(" ")[1];
+    //const token = authHeader.split(" ")[1];
     
-    const decoded = jwt.verify(token, JWT_SECRET) as any;
+    //const decoded = jwt.verify(token, JWT_SECRET) as any;
     
-    const user = userService.getByIdList(decoded.id);
+    const user = await userService.getCurrentUser();
     console.log(user)
     if (!user) throw new Error();
 

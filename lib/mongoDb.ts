@@ -32,6 +32,6 @@ const connectDB = async () => {
     throw error;
   }
 };
-console.log("abccccc")
+//console.log("abccccc")
 const connection=connectDB()
 export default connection;

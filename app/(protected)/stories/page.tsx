@@ -1,13 +1,16 @@
 "use client";
 import { useState, useEffect } from "react";
-import { Story, StoryService, State, Priority } from "@/src/services/storyServices";
+import { StoryService} from "@/src/services/storyServices";
 import { Button } from "@/components/ui/button";
-import { useProject } from "../context/activePContext";
+import { useProject } from "@/app/context/activePContext";
 import { useRouter } from "next/navigation";
-import { useStory } from "../context/activeSContext";
+import { useStory } from "@/app/context/activeSContext";
+import { Priority, State, Story } from "@/app/Model/Types/StoriesTypes";
+import { User, UserService } from "@/src/services/userServices";
 
 export default function StoryManager() {
   const storyService = new StoryService();
+  const userService=new UserService();
   const { activeProject } = useProject();
   
   // Loading state
@@ -19,7 +22,7 @@ export default function StoryManager() {
   
   
   const {activeStory,setActiveStory}=useStory();
-
+  const [user,setUser]=useState<User>();
   
 
  
@@ -36,43 +39,61 @@ export default function StoryManager() {
      
   }, [activeProject]);
   useEffect(() => {
+  const fetchStories = async () => {
     if (activeProject) {
-      const allStories = storyService.getAll(activeProject.id);
+      const allStories = await storyService.getAll(activeProject.id);
       setStories(allStories);
+      const user=await userService.getCurrentUser();
+      
+      setUser(user)
       setLoading(false);
     }
-  }, [activeProject]);
+  };
+
+  fetchStories();
+  //console.log("user-",user)
+}, [activeProject]);
 
   const [form, setForm] = useState<Story>({
     id: "",
     nazwa: "",
     opis: "",
     priorytet: Priority.niski,
-    projekt: activeProject,
+    projekt: activeProject!,
+    projektId:activeProject?.id!,
     data_utworzenia: new Date().toISOString(),
     stan: State.todo,
-    wlasciciel: "",
+    wlasciciel:"",
   });
 
-  const refreshStories = () => {
+  const refreshStories = async () => {
     if (activeProject) {
-      setStories(storyService.getAll(activeProject.id));
+      setStories(await storyService.getAll(activeProject.id));
     }
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     if (form) {
-      setForm({ ...form, [e.target.name]: e.target.value });
+      const { name, value } = e.target;
+  setForm((f) => ({
+    ...f,
+    [name]:
+      name === 'priorytet' || name === 'stan'
+        ? Number(value)  // ← cast here
+        : value,
+  }));
     }
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!form || !activeProject) return;
 
+    
     if (editing) {
-      storyService.update(form);
+      await storyService.update(form);
     } else {
-      storyService.create({ ...form, id: Date.now().toString(), projekt: activeProject });
+      
+      await storyService.create({ ...form, id: Date.now().toString(), projekt: activeProject ,wlasciciel:user?.login!});
     }
     refreshStories();
     setEditing(false);
@@ -84,6 +105,7 @@ export default function StoryManager() {
       opis: "",
       priorytet: Priority.niski,
       projekt: activeProject,
+      projektId:activeProject.id,
       data_utworzenia: new Date().toISOString(),
       stan: State.todo,
       wlasciciel: "",
@@ -93,15 +115,16 @@ export default function StoryManager() {
   const handleEdit = (story: Story) => {
     setForm(story);
     setEditing(true);
+    refreshStories();
   };
 
   const handleDelete = (id: string) => {
     storyService.delete(id);
     refreshStories();
   };
-  const handleSelect=(story:Story)=>{
+  const handleSelect=async (story:Story)=>{
     setActiveStory(story);
-    setStories([...storyService.getAll(activeProject.id)]); 
+    setStories([...await storyService.getAll(activeProject!.id)]); 
 
   }
   

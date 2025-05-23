@@ -11,9 +11,9 @@ export async function POST(req: Request) {
   const { login, haslo } = await req.json();
   
   const userService=new UserService();
-  const user = userService.getByLogin(login);
+  const user = await userService.getByLogin(login);
   //console.log(user)
-  if (!user || haslo!=user.haslo) {
+  if (!user || haslo!=user?.haslo) {
     return NextResponse.json({ message: "Invalid credentials" }, { status: 401 });
   }
 
@@ -25,8 +25,8 @@ export async function POST(req: Request) {
   return NextResponse.json({ token, refreshToken });
 }
 
-export async function DELETE(){
+// export async function DELETE(){
 
-localStorage.removeItem('token');
-localStorage.removeItem('refreshToken');
-}
+// localStorage.removeItem('token');
+// localStorage.removeItem('refreshToken');
+// }

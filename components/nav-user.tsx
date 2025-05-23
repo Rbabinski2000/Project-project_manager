@@ -9,7 +9,6 @@ import {
 import {
   Avatar,
   AvatarFallback,
-  AvatarImage,
 } from "@/components/ui/avatar"
 import {
   DropdownMenu,
@@ -29,10 +28,13 @@ import {
 import { User, UserService } from "@/src/services/userServices"
 import { Role } from "@/src/services/userServices"
 import { Button } from "./ui/button"
-import { useEffect, useState } from "react"
+import { useEffect, useState} from "react"
+import { useRouter } from 'next/navigation';
 export function NavUser() {
+  const router = useRouter();
 
   const [user, setUser] = useState<User | null>(null)
+  const [role,setRole]=useState<string|undefined>()
   const userSerivce=new UserService()
   useEffect(() => {
     const fetchUser = async () => {
@@ -43,9 +45,18 @@ export function NavUser() {
     fetchUser()
   }, [])
 
-  const role=Role[user?.rola];
-  console.log("tt",user)
-  
+  useEffect(()=>{
+    setRole(user?.rola ? Role[user?.rola] : "not logged")
+    //console.log(Role[user?.rola])
+  },[user])
+  //console.log("tt",user)
+  function handleLogout(){
+    userSerivce.logOut()
+    setUser(null)
+    //console.log("przed odswieżeniem")
+    //router.push("/");
+    window.location.reload()
+  }
   const { isMobile } = useSidebar()
   return (
     <SidebarMenu>
@@ -53,11 +64,12 @@ export function NavUser() {
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <SidebarMenuButton
+              aria-label="Open user menu"
               size="lg"
               className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
             >
               <Avatar className="h-8 w-8 rounded-lg grayscale">
-                <AvatarImage src={role} alt={user?.imie} />
+                {/* <AvatarImage src={role} alt={user?.imie} /> */}
                 <AvatarFallback className="rounded-lg">{user?.login}</AvatarFallback>
               </Avatar>
               <div className="grid flex-1 text-left text-sm leading-tight">
@@ -78,7 +90,7 @@ export function NavUser() {
             <DropdownMenuLabel className="p-0 font-normal">
               <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
                 <Avatar className="h-8 w-8 rounded-lg">
-                  <AvatarImage src={role} alt={user?.imie} />
+                  {/* <AvatarImage src={role} alt={user?.imie} /> */}
                   <AvatarFallback className="rounded-lg">CN</AvatarFallback>
                 </Avatar>
                 <div className="grid flex-1 text-left text-sm leading-tight">
@@ -107,7 +119,7 @@ export function NavUser() {
             <DropdownMenuSeparator />
             <DropdownMenuItem>
               
-              <Button onClick={()=>userSerivce.logOut()}><LogOutIcon />Log out</Button>
+              <Button onClick={()=>handleLogout()}><LogOutIcon />Log out</Button>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

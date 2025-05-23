@@ -1,10 +1,12 @@
 'use client'
 import { useState, useEffect } from "react";
-import { Project, ProjectService } from "../../src/services/projectServices1";
+import {ProjectService } from "@/src/services/projectServices1";
+import { Project } from "@/app/Model/Projects";
 
-import {User, UserService} from "@/src/services/userServices"
+import {Role, User, UserService} from "@/src/services/userServices"
 import { Button } from "@/components/ui/button";
-import { useProject } from "../context/activePContext";
+import { useProject } from "@/app/context/activePContext";
+import { useRouter } from "next/navigation";
 
 
 
@@ -18,29 +20,49 @@ export default function ProjectManager() {
   const userService = new UserService();
   const [user,setUser]=useState<User|null>(null)
 
-  
+  const [readOnly,setReadOnly]=useState<Boolean>(true)
   const {activeProject,setActiveProject}=useProject();
 
-  useEffect(() => {
-    setProjects(projectService.getAll());
-    setUser(userService.getCurrentUser());
+  const router=useRouter();
+
+  const fetchData = async () => {
+    const projects = await projectService.getAll();
+    setProjects(projects);
+
+    const user = await userService.getCurrentUser();
+    setUser(user);
+
     setActiveProject(activeProject);
-  }, []);
+  };
+
+  useEffect(() => {
   
+
+  fetchData();
+
+}, []);
+  useEffect(()=>{
+    if(user?.rola==Role.guest){
+      setReadOnly(false)
+    }else{
+      setReadOnly(true)
+    }
+  },[user])
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (editing) {
-      projectService.update(form);
+      await projectService.update(form);
     } else {
-      projectService.create({ ...form, id: Date.now().toString() });
+      await projectService.create({ ...form, id: Date.now().toString() });
     }
-    setProjects(projectService.getAll());
+    setProjects(await projectService.getAll());
     setForm({ id: "", nazwa: "", opis: "" });
     setEditing(false);
+    //router.push("/manage");
   };
 
   const handleEdit = (project: Project) => {
@@ -48,13 +70,14 @@ export default function ProjectManager() {
     setEditing(true);
   };
 
-  const handleDelete = (id: string) => {
-    projectService.delete(id);
-    setProjects(projectService.getAll());
+  const handleDelete = async (id: string) => {
+    const deleted = await projectService.delete(id);
+    const fresh = await projectService.getAll();
+    setProjects(fresh);
   };
-  const handleSelect = (project: Project) => {
+  const handleSelect = async (project: Project) => {
     setActiveProject(project);
-    setProjects([...projectService.getAll()]); // Refresh the project list
+    setProjects([...await projectService.getAll()]); // Refresh the project list
   };
 
   return (
@@ -62,6 +85,7 @@ export default function ProjectManager() {
       <h1 className="text-2xl font-bold mb-4">Użytkownik - {user?.imie}</h1>
       <h1 className="text-2xl font-bold mb-4">Wybrany projekt - {activeProject?.nazwa}</h1>
       <h1 className="text-2xl font-bold mb-4">Zarządzanie projektami</h1>
+      {readOnly ==true?(
       <div className="mb-4">
         <input
           type="text"
@@ -82,6 +106,7 @@ export default function ProjectManager() {
           {editing ? "Aktualizuj" : "Dodaj"}
         </button>
       </div>
+      ):<span></span>}
       <ul>
         {projects.map((project) => (
           <li key={project.id} className="border p-2 mb-2 flex justify-between">
@@ -90,8 +115,12 @@ export default function ProjectManager() {
               <p>{project.opis}</p>
             </div>
             <div>
-              <Button onClick={() => handleEdit(project)} className="text-yellow-500 mr-2">Edytuj</Button>
+              {readOnly ==true?(
+                <div>
+              <Button onClick={() => handleEdit(project) } className="text-yellow-500 mr-2">Edytuj</Button>
               <Button onClick={() => handleDelete(project.id)} className="text-red-500 mr-2">Usuń</Button>
+              </div>
+              ):<span></span>}
               {project.id != activeProject?.id ? (
                 <Button onClick={() => handleSelect(project)} className="text-blue-500">
                   Wybierz jako aktywny

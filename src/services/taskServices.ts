@@ -1,86 +1,74 @@
-//import { Project } from "./projectServices1";
-import { Priority,State, Story } from "./storyServices";
-import { User } from "./userServices";
+import { Task } from "@/app/Model/Tasks"
 
-export interface Task {
-    id: string;
-    nazwa: string;
-    opis: string;
-    priorytet: Priority;
-    historia: Story;
-    szacowany_czas: number;
-    status: State;
-    data_dodania: string;
-    data_startu?: string;
-    data_ukonczenia?: string;
-    przypisany_uzytkownik?: string;
+export class TaskService {
+  private base = '/api/tasks'
+
+  public async getTasks(): Promise<Task[]> {
+    const res = await fetch(this.base)
+    if (!res.ok) throw new Error('Fetch tasks failed')
+    return res.json()
   }
-  
-  
-  
-  export class TaskService {
-    private STORAGE_KEY = 'tasks'
 
-    public getTasks(): Task[] {
-      return JSON.parse(localStorage.getItem(this.STORAGE_KEY) || '[]');
-    }
-    
-    public getStoryTasks(storyId:String): Task[] {
-      var array:Task[]= JSON.parse(localStorage.getItem(this.STORAGE_KEY) || '[]');
-      return array.filter(task => task.historia.id === storyId);
-    }
-    public getTask(id: string): Task | undefined {
-        return this.getTasks().find(task => task.id === id);
-    }
-      
-    public addTask(task: Task): void {
-        const tasks = this.getTasks();
-        tasks.push(task);
-        localStorage.setItem(this.STORAGE_KEY, JSON.stringify(tasks));
-    }
-      
-    public updateTask(updatedTask: Task): void {
-      console.log(updatedTask)
-        const tasks =this.getTasks().map(task => 
-          task.id === updatedTask.id ? updatedTask : task
-        );
-        localStorage.setItem(this.STORAGE_KEY, JSON.stringify(tasks));
-    }
-      
-    public deleteTask(id: string): void {
-        const tasks = this.getTasks().filter(task => task.id !== id);
-        localStorage.setItem(this.STORAGE_KEY, JSON.stringify(tasks));
-    }
-    
-    public removeUserFromTask(id: string):void{
-      const task = this.getTask(id);
-       
-        if (task && task.status === State.todo) {
-          task.status = State.doing;
-          task.przypisany_uzytkownik = undefined;
-          
-          this.updateTask(task);
-        }
-    }
-    public assignUserToTask(id: string, user: User): void {
-        const task = this.getTask(id);
-       
-        if (task && task.status === State.todo) {
-          task.status = State.doing;
-          task.data_startu = new Date().toISOString();
-          task.przypisany_uzytkownik = user.imie;
-          
-          this.updateTask(task);
-        }
-    }
-      
-    public markTaskAsDone(id: string): void {
-        const task = this.getTask(id);
-        if (task && task.status === State.doing) {
-          task.status = State.done;
-          task.data_ukonczenia = new Date().toISOString();
-          
-          this.updateTask(task);
-        }
-    };
+  public async getStoryTasks(storyId: string): Promise<Task[]> {
+    const res = await fetch(`${this.base}?storyId=${storyId}`)
+    if (!res.ok) throw new Error('Fetch story tasks failed')
+    return res.json()
+  }
+
+  public async getTask(id: string): Promise<Task | null> {
+    const res = await fetch(`${this.base}/${id}`)
+    if (res.status === 404) return null
+    if (!res.ok) throw new Error('Fetch task failed')
+    return res.json()
+  }
+
+  public async addTask(task: Task): Promise<Task> {
+    const res = await fetch(this.base, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(task),
+    })
+    if (!res.ok) throw new Error('Create task failed')
+    return res.json()
+  }
+
+  public async updateTask(task: Task): Promise<Task | null> {
+    const res = await fetch(`${this.base}/${task.id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(task),
+    })
+    if (res.status === 404) return null
+    if (!res.ok) throw new Error('Update task failed')
+    return res.json()
+  }
+
+  public async deleteTask(id: string): Promise<boolean> {
+    const res = await fetch(`${this.base}/${id}`, { method: 'DELETE' })
+    if (!res.ok) throw new Error('Delete task failed')
+    const result = await res.json()
+    return result.deletedCount > 0
+  }
+
+  public async assignUser(id: string, userId: string): Promise<Task> {
+    const res = await fetch(`${this.base}/${id}/assign`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId }),
+    })
+    if (!res.ok) throw new Error('Assign failed')
+    return res.json()
+  }
+
+  public async removeUser(id: string): Promise<Task> {
+    const res = await fetch(`${this.base}/${id}/remove`, { method: 'POST' })
+    if (!res.ok) throw new Error('Remove user failed')
+    return res.json()
+  }
+
+  public async markDone(id: string): Promise<Task> {
+    const res = await fetch(`${this.base}/${id}/done`, { method: 'POST' })
+    if (!res.ok) throw new Error('Mark done failed')
+    return res.json()
+  }
 }

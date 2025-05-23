@@ -29,7 +29,7 @@ export default function LoginPage() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ credential: response.credential }),
     });
-    
+    //console.log("in login page",res.status)
     if (!res.ok) {
       setError('Google login failed');
       return;
@@ -38,7 +38,8 @@ export default function LoginPage() {
     const { token, refreshToken } = await res.json();
     localStorage.setItem('token', token);
     localStorage.setItem('refreshToken', refreshToken);
-    router.push('/');
+    //router.push('/');
+    window.location.reload()
   };
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -59,41 +60,41 @@ export default function LoginPage() {
     const { token, refreshToken } = await res.json();
     localStorage.setItem('token', token);
     localStorage.setItem('refreshToken', refreshToken);
-    router.push('/');
+    //router.push('/');\
+    window.location.reload()
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100 px-4">
-      <form onSubmit={handleLogin} className="bg-white p-6 rounded shadow-md w-full max-w-sm">
-        <h2 className="text-2xl font-bold mb-4 text-center">Zaloguj się</h2>
-
+    <div className="p-6 max-w-2xl mx-auto">
+      <h2 className="text-2xl font-bold mb-6 text-center">Zaloguj się</h2>
+      <form onSubmit={handleLogin} className="border rounded p-6 space-y-4">
         <input
           type="text"
           placeholder="Login"
           value={login}
           onChange={(e) => setLogin(e.target.value)}
-          className="w-full p-2 border border-gray-300 rounded mb-3"
           required
+          className="border p-2 w-full mb-2 rounded"
         />
         <input
           type="password"
           placeholder="Hasło"
           value={haslo}
           onChange={(e) => setHaslo(e.target.value)}
-          className="w-full p-2 border border-gray-300 rounded mb-3"
           required
+          className="border p-2 w-full mb-2 rounded"
         />
         <button
+          aria-label="zalogujzwykle"
           type="submit"
-          className="w-full bg-blue-600 text-white p-2 rounded hover:bg-blue-700"
+          className="bg-blue-500 text-white px-4 py-2 rounded"
         >
           Zaloguj
         </button>
-
-        {error && <p className="text-red-500 mt-2 text-center">{error}</p>}
+        {error && <p className="text-red-500 mt-2">{error}</p>}
       </form>
 
-      <div className="mt-6" id="google-button"></div>
+      <div className="mt-6 text-center" id="google-button" />
     </div>
   );
 }

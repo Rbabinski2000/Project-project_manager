@@ -1,78 +1,61 @@
-import { Project } from "./projectServices1";
+import { Story } from '@/app/Model/Types/StoriesTypes';
 
-export interface Story {
-    id: string;
-    nazwa: string;
-    opis: string;
-    priorytet:Priority;
-    projekt:Project;
-    data_utworzenia:string;
-    stan:State;
-    wlasciciel:string;
-}
-export enum Priority{
-    niski,
-    sredni,
-    wysoki
-}
-export enum State{
-    todo = 1,
-    doing,
-    done
-}
 export class StoryService {
-    private storageKey = "stories";
-    
+  private baseUrl = '/api/mongo/stories'
 
-    // Retrieve all projects from localStorage
-    private getStories(): Story[] {
-        const stories = localStorage.getItem(this.storageKey);
-        return stories ? JSON.parse(stories) : [];
-    }
+  /** Get all stories by project ID */
+  public async getAll(projectId: string): Promise<Story[]> {
+    const res = await fetch(`${this.baseUrl}?projectId=${projectId}`)
+    //console.log(res)
+    if (!res.ok) throw new Error('Failed to fetch stories')
+    return res.json()
+  }
 
-    // Save projects back to localStorage
-    private saveStories(stories: Story[]): void {
-        localStorage.setItem(this.storageKey, JSON.stringify(stories));
-    }
+ 
+  public async getById(id: string): Promise<Story | null> {
+    const res = await fetch(`${this.baseUrl}/${id}`)
+    if (res.status === 404) return null
+    if (!res.ok) throw new Error('Failed to fetch story')
+    return res.json()
+  }
 
-    // Get all projects
-    public getAll(id:string): Story[] {
-        
-        let stories = this.getStories();
-        //console.log(stories[0])
-        
-        stories = stories.filter((story)=> story.projekt.id===id);
-        return stories;
-    }
+ 
+  public async create(story: Story): Promise<Story> {
+     console.log("Service create, priorytet:", story.priorytet, typeof story.priorytet);
+  console.log("Service create, stan:", story.stan, typeof story.stan);
+    story.projektId=story.projekt.id;
+    //console.log(story)
+    const res = await fetch(this.baseUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(story)
+    })
+    if (!res.ok) throw new Error('Failed to create story')
+    return res.json()
+  }
 
-    // Get a project by id
-    public getById(id: string): Story | undefined {
-        return this.getStories().find((story) => story.id === id);
-    }
+ 
+  public async update(story: Story): Promise<Story | null> {
+    const res = await fetch(`${this.baseUrl}/${story.id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(story)
+    })
+    if (res.status === 404) return null
+    if (!res.ok) throw new Error('Failed to update story')
+    return res.json()
+  }
 
-    // Create a new project
-    public create(story: Story): void {
-        const stories = this.getStories();
-        stories.push(story);
-        this.saveStories(stories);
-    }
-
-    // Update an existing project
-    public update(updatedStory: Story): void {
-        let stories = this.getStories();
-        stories = stories.map((story) =>
-            story.id === updatedStory.id ? updatedStory : story
-        );
-        this.saveStories(stories);
-    }
-
-    // Delete a project by id
-    public delete(id: string): void {
-        let stories = this.getStories();
-        stories = stories.filter((story) => story.id !== id);
-        this.saveStories(stories);
-    }
-    public setActiveProject(activeStory:Story|null){
+  
+  public async delete(id: string): Promise<boolean> {
+    const res = await fetch(`${this.baseUrl}/${id}`, {
+      method: 'DELETE'
+    })
+    if (!res.ok) throw new Error('Failed to delete story')
+    const result = await res.json()
+    return result.deletedCount > 0
+  }
+  public setActiveProject(activeStory:Story|null){
         localStorage.setItem("activeStory", JSON.stringify(activeStory));
     }
     public getActiveProject(){
