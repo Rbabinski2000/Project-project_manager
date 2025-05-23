@@ -21,8 +21,6 @@ export class StoryService {
 
  
   public async create(story: Story): Promise<Story> {
-     console.log("Service create, priorytet:", story.priorytet, typeof story.priorytet);
-  console.log("Service create, stan:", story.stan, typeof story.stan);
     story.projektId=story.projekt.id;
     //console.log(story)
     const res = await fetch(this.baseUrl, {

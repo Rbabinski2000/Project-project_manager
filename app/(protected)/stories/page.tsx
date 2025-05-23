@@ -6,7 +6,7 @@ import { useProject } from "@/app/context/activePContext";
 import { useRouter } from "next/navigation";
 import { useStory } from "@/app/context/activeSContext";
 import { Priority, State, Story } from "@/app/Model/Types/StoriesTypes";
-import { User, UserService } from "@/src/services/userServices";
+import { Role, User, UserService } from "@/src/services/userServices";
 
 export default function StoryManager() {
   const storyService = new StoryService();
@@ -23,7 +23,7 @@ export default function StoryManager() {
   
   const {activeStory,setActiveStory}=useStory();
   const [user,setUser]=useState<User>();
-  
+  const [readOnly,setReadOnly]=useState<Boolean>(true)
 
  
   const router=useRouter();
@@ -53,6 +53,14 @@ export default function StoryManager() {
   fetchStories();
   //console.log("user-",user)
 }, [activeProject]);
+useEffect(()=>{
+    if(user?.rola==Role.guest){
+      setReadOnly(false)
+    }else{
+      setReadOnly(true)
+    }
+  },[user])
+
 
   const [form, setForm] = useState<Story>({
     id: "",
@@ -112,15 +120,16 @@ export default function StoryManager() {
     });
   };
 
-  const handleEdit = (story: Story) => {
+  const handleEdit = async (story: Story) => {
     setForm(story);
     setEditing(true);
-    refreshStories();
+    await refreshStories();
   };
 
-  const handleDelete = (id: string) => {
-    storyService.delete(id);
-    refreshStories();
+  const handleDelete = async (id: string) => {
+    const deleted=await storyService.delete(id);
+    const fresh = await storyService.getAll(activeProject!.id)
+    await refreshStories();
   };
   const handleSelect=async (story:Story)=>{
     setActiveStory(story);
@@ -141,9 +150,8 @@ export default function StoryManager() {
     <div className="p-6 max-w-3xl mx-auto">
       <h1 className="text-2xl font-bold mb-4">Zarządzanie Historyjkami Projektu - {activeProject.nazwa}</h1>
 
-     
-
       {/* Story Form */}
+      {readOnly ==true ?(
       <div className="mb-4 border p-4 rounded">
         <input type="text" name="nazwa" value={form.nazwa} onChange={handleChange} placeholder="Nazwa" className="border p-2 w-full mb-2" />
         <textarea name="opis" value={form.opis} onChange={handleChange} placeholder="Opis" className="border p-2 w-full mb-2" />
@@ -161,6 +169,7 @@ export default function StoryManager() {
           {editing ? "Aktualizuj" : "Dodaj"}
         </button>
       </div>
+        ):<span></span>}
 
        {/* Filter Stories */}
        <div className="mb-4">
@@ -185,8 +194,12 @@ export default function StoryManager() {
               </span>
             </div>
             <div>
+              {readOnly==true ?(
+              <span>
               <Button onClick={() => handleEdit(story)} className="text-yellow-500 mr-2">Edytuj</Button>
               <Button onClick={() => handleDelete(story.id)} className="text-red-500">Usuń</Button>
+              </span>
+              ):<span></span>}
               {story.id != activeStory?.id ? (
                 <Button onClick={() => handleSelect(story)} className="text-blue-500">
                   Wybierz jako aktywny

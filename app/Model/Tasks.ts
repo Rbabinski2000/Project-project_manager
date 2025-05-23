@@ -22,12 +22,13 @@ export interface Task {
   opis: string;
   priorytet: Priority;
   historia: Story;
+  historiaId:string;
   szacowany_czas: number;
   status: State;
   data_dodania: string;
   data_startu?: string;
   data_ukonczenia?: string;
-  przypisany_uzytkownik?: User;
+  przypisany_uzytkownik?: string;
 }
 
 // 3) Mongoose Document interface
@@ -37,12 +38,13 @@ export interface TaskDocument extends Document {
   opis: string;
   priorytet: Priority;
   historia: mongoose.Types.ObjectId | StoryDocument;
+  historiaId:string;
   szacowany_czas: number;
   status: State;
   data_dodania: string;
   data_startu?: string;
   data_ukonczenia?: string;
-  przypisany_uzytkownik?: mongoose.Types.ObjectId | UserDocument;
+  przypisany_uzytkownik?: string;
 }
 
 // 4) Schema definition
@@ -50,14 +52,15 @@ const TaskSchema = new Schema<TaskDocument>({
   id:                   { type: String, required: true, unique: true },
   nazwa:                { type: String, required: true },
   opis:                 { type: String, required: true },
-  priorytet:            { type: Number, enum: Object.values(Priority), required: true },
+  priorytet:            { type: Number,  required: true },
   historia:             { type: Schema.Types.ObjectId, ref: 'StoryModel', required: true },
+  historiaId:           {type:String,   required:true},
   szacowany_czas:       { type: Number, required: true },
-  status:               { type: Number, enum: Object.values(State), required: true },
+  status:               { type: Number,  required: true },
   data_dodania:         { type: String, required: true },
   data_startu:          { type: String },
   data_ukonczenia:      { type: String },
-  przypisany_uzytkownik:{ type: Schema.Types.ObjectId, ref: 'UserModel' }
+  przypisany_uzytkownik:{ type: String}
 }, {
   timestamps: false
 });

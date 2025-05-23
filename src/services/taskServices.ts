@@ -1,7 +1,7 @@
 import { Task } from "@/app/Model/Tasks"
 
 export class TaskService {
-  private base = '/api/tasks'
+  private base = '/api/mongo/tasks'
 
   public async getTasks(): Promise<Task[]> {
     const res = await fetch(this.base)
@@ -10,9 +10,17 @@ export class TaskService {
   }
 
   public async getStoryTasks(storyId: string): Promise<Task[]> {
+    
     const res = await fetch(`${this.base}?storyId=${storyId}`)
-    if (!res.ok) throw new Error('Fetch story tasks failed')
-    return res.json()
+    //console.log(res.status)
+    if(res.status==404){
+      return []
+    }
+    //if (!res.ok) throw new Error('Fetch story tasks failed')
+    const data = await res.json();
+    //console.log(data)
+  
+  return data;
   }
 
   public async getTask(id: string): Promise<Task | null> {
@@ -23,11 +31,15 @@ export class TaskService {
   }
 
   public async addTask(task: Task): Promise<Task> {
+    
+    task.historiaId=task.historia.id;
+    console.log("task-",task)
     const res = await fetch(this.base, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(task),
     })
+    //console.log(res.json())
     if (!res.ok) throw new Error('Create task failed')
     return res.json()
   }
@@ -51,23 +63,25 @@ export class TaskService {
   }
 
   public async assignUser(id: string, userId: string): Promise<Task> {
-    const res = await fetch(`${this.base}/${id}/assign`, {
+    const res = await fetch(`${this.base}/${id}/assign?userId=${userId}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ userId }),
     })
+    const score=await res.json();
+    //console.log(score)
     if (!res.ok) throw new Error('Assign failed')
-    return res.json()
+    return score
   }
 
   public async removeUser(id: string): Promise<Task> {
-    const res = await fetch(`${this.base}/${id}/remove`, { method: 'POST' })
+    const res = await fetch(`${this.base}/${id}/assign`, { method: 'PUT' })
     if (!res.ok) throw new Error('Remove user failed')
     return res.json()
   }
 
   public async markDone(id: string): Promise<Task> {
-    const res = await fetch(`${this.base}/${id}/done`, { method: 'POST' })
+    const res = await fetch(`${this.base}/${id}/markdone`, { method: 'POST' })
     if (!res.ok) throw new Error('Mark done failed')
     return res.json()
   }

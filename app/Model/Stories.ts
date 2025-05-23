@@ -20,11 +20,11 @@ const StorySchema = new Schema<StoryDocument>({
   id:              { type: String, required: true, unique: true },
   nazwa:           { type: String, required: true },
   opis:            { type: String, required: true },
-  priorytet:       { type: Number, enum: Object.values(Priority), required: true },
+  priorytet:       { type: Number,  required: true },
   projekt:         { type: Schema.Types.ObjectId, ref: 'ProjectModel', required: true },
   projektId:       { type: String, required: true, index: true },
   data_utworzenia: { type: String, required: true },
-  stan:            { type: Number, enum: Object.values(State), required: true },
+  stan:            { type: Number,  required: true },
   wlasciciel:      { type: String}
 }, {
   timestamps: false

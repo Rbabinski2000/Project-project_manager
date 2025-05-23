@@ -54,7 +54,7 @@ export class UserService {
         });
     }
     
-    public async getUsers():Promise<User[]|userError>{
+    public async getUsers():Promise<User[]>{
         //const users = localStorage.getItem("users");
         //return users ? JSON.parse(users) : [];
         
@@ -67,7 +67,7 @@ export class UserService {
             //console.log("in getUsers",users)
             return users;
           } catch {
-            return "There are no registered users";
+            return [];
           }
     }
     public async getById(id: string): Promise<User | undefined> {

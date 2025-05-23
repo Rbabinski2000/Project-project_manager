@@ -60,7 +60,8 @@ export default function LoginPage() {
     const { token, refreshToken } = await res.json();
     localStorage.setItem('token', token);
     localStorage.setItem('refreshToken', refreshToken);
-    //router.push('/');\
+    
+    //router.replace("/");
     window.location.reload()
   };
 

@@ -7,7 +7,7 @@ import {Task} from "@/app/Model/Tasks"
 import React, { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 
-import { User, UserService } from '@/src/services/userServices';
+import { Role, User, UserService } from '@/src/services/userServices';
 import { useStory } from '@/app/context/activeSContext';
 import { useRouter } from "next/navigation";
 
@@ -30,6 +30,22 @@ export default function TaskManager() {
 
     const [filter, setFilter] = useState<State | "all">("all");
 
+    const [user,setUser]=useState<User>();
+    const [users, setUsers] = useState<User[]>([]);
+    const [readOnly,setReadOnly]=useState<Boolean>(true)
+
+    useEffect(() => {
+      const fetchUsers = async () => {
+        const fetchedUsers = await userService.getUsers();
+        setUsers(fetchedUsers);
+        const user=await userService.getCurrentUser();
+      
+      setUser(user)
+      };
+
+      fetchUsers();
+    }, []);
+
     useEffect(() => {
       const timeout = setTimeout(() => {
         if (!activeStory) {
@@ -40,9 +56,18 @@ export default function TaskManager() {
       return () => clearTimeout(timeout);
        
     }, [activeStory]);
+    useEffect(()=>{
+        if(user?.rola==Role.guest){
+          setReadOnly(false)
+        }else{
+          setReadOnly(true)
+        }
+      },[user])
+
      useEffect(() => {
   if (activeStory) {
     const init = async () => {
+      
       const tasks = await taskService.getStoryTasks(activeStory.id);
       setTasks(tasks);
 
@@ -52,6 +77,7 @@ export default function TaskManager() {
         opis: "",
         priorytet: Priority.niski,
         historia: activeStory!,
+        historiaId:activeStory.id,
         szacowany_czas: 0,
         status: State.todo,
         data_dodania: new Date().toISOString(),
@@ -85,9 +111,9 @@ export default function TaskManager() {
     refreshTask();
   };
 
-  const handleDelete = (id: string) => {
-    taskService.deleteTask(id);
-    refreshTask();
+  const handleDelete = async (id: string) => {
+    await taskService.deleteTask(id);
+    await refreshTask();
   };
   const handleEdit=(task:Task)=>{
     setEditForm(task);
@@ -103,22 +129,30 @@ export default function TaskManager() {
     e.preventDefault();
     
     
-    if(editForm.przypisany_uzytkownik!=undefined){
-      const getUserId=await userService.getById(editForm.przypisany_uzytkownik.id)
-      
-      taskService.assignUserToTask(editForm.id,getUserId!.id!)
-    }else{
-      taskService.updateTask(editForm);
-    }
-    //console.log(editForm)
-    refreshTask();
-    setEdit(false)
-  };
-  const handleDone = (id:string)=>{
-    taskService.markTaskAsDone(id)
+     try {
+      console.log(editForm.przypisany_uzytkownik)
+      if(editForm.przypisany_uzytkownik=='0'){
+        await taskService.removeUser(editForm.id);
+      }else if (editForm.przypisany_uzytkownik !== undefined) {
+        const user = await userService.getById(editForm.przypisany_uzytkownik);
+        if (user?.id) {
+          await taskService.assignUser(editForm.id, user.id); // ✅ Await this
+        }
+      } else {
+        await taskService.updateTask(editForm); // ✅ Also await this
+      }
+
+      await refreshTask(); // ✅ Wait for tasks to update before rendering
+      setEdit(false);
+    }catch (err) {
+    console.error("Error submitting edit:", err);
+  }
+  }
+  const handleDone = async (id:string)=>{
+    await taskService.markDone(id)
     
     //console.log(taskService.getStoryTasks(activeStory.id))
-    refreshTask();
+    await refreshTask();
     setEdit(false);
   }
 
@@ -133,13 +167,14 @@ export default function TaskManager() {
     
     <div className="p-6 max-w-3xl mx-auto">
 
-      {editing ?(detailView(editForm!,handleEditChange,handleEditSubmit,handleDone)):
+      {editing ?(detailView(editForm!,handleEditChange,handleEditSubmit,handleDone,users)):
 
       <div className="p-6 max-w-3xl mx-auto">
         <h1 className="text-2xl font-bold mb-4">Zarządzanie zadaniami Historii - {activeStory.nazwa}</h1>
 
 
         {/* Story Form */}
+        {readOnly ==true ?(
         <div className="mb-4 border p-4 rounded">
           <input type="text" name="nazwa" value={form.nazwa} onChange={handleChange} placeholder="Nazwa" className="border p-2 w-full mb-2" />
           <textarea name="opis" value={form.opis} onChange={handleChange} placeholder="Opis" className="border p-2 w-full mb-2" />
@@ -153,7 +188,7 @@ export default function TaskManager() {
             Dodaj
           </button>
         </div>
-
+        ):<span></span>}
         {/* Filter Stories */}
         <div className="mb-4">
           <select onChange={(e) => setFilter(e.target.value as State | "all")} value={filter} className="border p-2 w-full">
@@ -176,11 +211,12 @@ export default function TaskManager() {
                   {task.status.toString().toUpperCase()}
                 </span>
               </div>
-              <div>
-                <Button onClick={() => handleEdit(task)} className="text-yellow-500 mr-2">Edytuj</Button>
-                <Button onClick={() => handleDelete(task.id)} className="text-red-500">Usuń</Button>
-
-              </div>
+              {readOnly ==true ?(
+                <div>
+                  <Button onClick={() => handleEdit(task)} className="text-yellow-500 mr-2">Edytuj</Button>
+                  <Button onClick={() => handleDelete(task.id)} className="text-red-500">Usuń</Button>
+                </div>
+              ):<span></span>}
             </li>
           ))}
         </ul>
@@ -189,9 +225,14 @@ export default function TaskManager() {
     </div>
   );
 };
-async function detailView(form:Task,handleEditChange,handleEditSubmit,handleDone){
-  const userService=new UserService();
-  const users:User[]=await userService.getUsers();
+function detailView(
+  form: Task,
+  handleEditChange,
+  handleEditSubmit,
+  handleDone,
+  users: User[]
+){
+  //console.log(users)
   return(
     <div className="p-6 max-w-3xl mx-auto">
           <h1 className="text-2xl font-bold mb-4">Zarządzanie zadaniem  - {form.nazwa} o id-{form.id}</h1>
@@ -211,9 +252,9 @@ async function detailView(form:Task,handleEditChange,handleEditSubmit,handleDone
             <br/>
             Użytkownik:
             <select name="przypisany_uzytkownik" value={form.przypisany_uzytkownik} onChange={handleEditChange} className="border p-2 w-full mb-2">
-            <option value="0">Brak przypisu</option>
+            <option value='0'>Brak przypisu</option>
               {users.map((user)=>(
-                <option value={user.id}>{user.imie} {user.nazwisko}</option>
+                <option key={user.id}value={user.id}>{user.imie} {user.nazwisko}</option>
               ))}
             </select>
             <button onClick={()=>handleDone(form.id)} className="bg-red-500 text-white px-4 py-2">

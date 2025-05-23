@@ -1,7 +1,5 @@
 import { NextResponse } from 'next/server'
 import StoryModel from '@/app/Model/Stories'
-import mongoose from 'mongoose'
-import { Priority, State } from '@/app/Model/Types/StoriesTypes'
 
 // GET /api/stories?projectId=xxx
 export async function GET(req: Request) {
@@ -27,18 +25,16 @@ export async function GET(req: Request) {
 }
 
 export async function POST(req: Request) {
- // try {
+  try {
     const body = await req.json()
-     console.log("Server received priorytet:", body.priorytet, typeof body.priorytet);
-console.log("Server received stan:", body.stan, typeof body.stan);
     //console.log(body)
     const story = await StoryModel.create(body)
-     console.log("model",story)
-    const populated = await story.populate('projekt')
+     //console.log("model",story)
+    //const populated = await story.populate('projekt')
 
-    return NextResponse.json(populated.toObject())
-  // } catch (err) {
-  //   //console.log(err)
-  //   return NextResponse.json({ error: 'Failed to create story' }, { status: 500 })
-  // }
+    return NextResponse.json(story)
+  } catch (err) {
+    //console.log(err)
+    return NextResponse.json({ error: 'Failed to create story' }, { status: 500 })
+  }
 }
