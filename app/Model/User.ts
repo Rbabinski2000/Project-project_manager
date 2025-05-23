@@ -35,7 +35,7 @@ const UserSchema = new Schema<UserDocument>({
   nazwisko: { type: String, required: true },
   login:    { type: String, required: true, unique: true },
   haslo:    { type: String, required: true },
-  rola:     { type: Number, enum: Object.values(Role), required: true }
+  rola:     { type: Number, enum: [Role.admin,Role.devops,Role.developer,Role.guest], required: true }
 }, {
   timestamps: false
 });
